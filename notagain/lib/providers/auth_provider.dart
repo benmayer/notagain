@@ -198,13 +198,16 @@ class AuthProvider extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
+      debugPrint('🔐 AuthProvider: Starting logout for ${_user?.email}');
       await _supabaseService.logout();
       
       _user = null;
       _isAuthenticated = false;
       _error = null;
+      debugPrint('✅ AuthProvider: Logout successful');
     } catch (e) {
       _error = 'Logout failed: $e';
+      debugPrint('❌ AuthProvider: Logout exception: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
