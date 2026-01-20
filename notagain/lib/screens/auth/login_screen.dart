@@ -4,9 +4,14 @@
 /// Includes options for social authentication (Apple, Google)
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/auth/email_field.dart';
+import '../../widgets/auth/password_field.dart';
+import '../../widgets/auth/auth_button.dart';
+import '../../widgets/auth/social_auth_buttons.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,7 +24,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _showPassword = false;
 
   @override
   void dispose() {
@@ -39,11 +43,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (response.isSuccess && response.user != null) {
-      // Navigate to home screen
-      // TODO: Implement navigation logic
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login successful!')),
-      );
+      // Navigate to home screen via go_router
+      context.go('/home');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(response.error ?? 'Login failed')),
@@ -114,94 +115,24 @@ class _LoginScreenState extends State<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Email Field
-                    TextFormField(
+                    EmailField(
                       controller: _emailController,
-                      decoration: InputDecoration(
-                        hintText: 'Email',
-                        prefixIcon: const Icon(Icons.email_outlined),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value?.isEmpty ?? true) {
-                          return 'Email is required';
-                        }
-                        if (!value!.contains('@')) {
-                          return 'Invalid email format';
-                        }
-                        return null;
-                      },
                     ),
                     const SizedBox(height: 16),
 
                     // Password Field
-                    TextFormField(
+                    PasswordField(
                       controller: _passwordController,
-                      decoration: InputDecoration(
-                        hintText: 'Password',
-                        prefixIcon: const Icon(Icons.lock_outlined),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _showPassword
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                          ),
-                          onPressed: () {
-                            setState(() => _showPassword = !_showPassword);
-                          },
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      obscureText: !_showPassword,
-                      validator: (value) {
-                        if (value?.isEmpty ?? true) {
-                          return 'Password is required';
-                        }
-                        if ((value?.length ?? 0) < 6) {
-                          return 'Password must be at least 6 characters';
-                        }
-                        return null;
-                      },
                     ),
                     const SizedBox(height: 24),
 
                     // Sign In Button
                     Consumer<AuthProvider>(
                       builder: (context, authProvider, _) {
-                        return ElevatedButton(
-                          onPressed: authProvider.isLoading
-                              ? null
-                              : () => _handleLogin(authProvider),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: authProvider.isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation(
-                                      Colors.white,
-                                    ),
-                                  ),
-                                )
-                              : const Text(
-                                  'Sign In',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
+                        return AuthButton(
+                          label: 'Sign In',
+                          isLoading: authProvider.isLoading,
+                          onPressed: () => _handleLogin(authProvider),
                         );
                       },
                     ),
@@ -239,40 +170,10 @@ class _LoginScreenState extends State<LoginScreen> {
               // Social Auth Buttons
               Consumer<AuthProvider>(
                 builder: (context, authProvider, _) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Apple Sign In
-                      OutlinedButton.icon(
-                        onPressed: authProvider.isLoading
-                            ? null
-                            : () => authProvider.signInWithApple(),
-                        icon: const Icon(Icons.apple),
-                        label: const Text('Sign in with Apple'),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Google Sign In
-                      OutlinedButton.icon(
-                        onPressed: authProvider.isLoading
-                            ? null
-                            : () => authProvider.signInWithGoogle(),
-                        icon: const Icon(Icons.g_mobiledata),
-                        label: const Text('Sign in with Google'),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ],
+                  return SocialAuthButtons(
+                    isLoading: authProvider.isLoading,
+                    onAppleTap: () => authProvider.signInWithApple(),
+                    onGoogleTap: () => authProvider.signInWithGoogle(),
                   );
                 },
               ),
@@ -287,9 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   GestureDetector(
-                    onTap: () {
-                      // TODO: Navigate to sign up screen
-                    },
+                    onTap: () => context.go('/signup'),
                     child: Text(
                       'Sign Up',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(

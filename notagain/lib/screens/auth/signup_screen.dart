@@ -3,9 +3,13 @@
 /// Handles new user registration with email, password, and name
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/auth/email_field.dart';
+import '../../widgets/auth/password_field.dart';
+import '../../widgets/auth/auth_button.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -20,8 +24,6 @@ class _SignupScreenState extends State<SignupScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _showPassword = false;
-  bool _showConfirmPassword = false;
   bool _agreedToTerms = false;
 
   @override
@@ -51,10 +53,8 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!mounted) return;
 
     if (response.isSuccess && response.user != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account created successfully!')),
-      );
-      // TODO: Navigate to onboarding or home screen
+      // Navigate to home screen via go_router
+      context.go('/home');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(response.error ?? 'Signup failed')),
@@ -78,7 +78,7 @@ class _SignupScreenState extends State<SignupScreen> {
               Row(
                 children: [
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () => context.go('/login'),
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -137,93 +137,23 @@ class _SignupScreenState extends State<SignupScreen> {
                     const SizedBox(height: 16),
 
                     // Email Field
-                    TextFormField(
+                    EmailField(
                       controller: _emailController,
-                      decoration: InputDecoration(
-                        hintText: 'Email',
-                        prefixIcon: const Icon(Icons.email_outlined),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value?.isEmpty ?? true) {
-                          return 'Email is required';
-                        }
-                        if (!value!.contains('@')) {
-                          return 'Invalid email format';
-                        }
-                        return null;
-                      },
                     ),
                     const SizedBox(height: 16),
 
                     // Password Field
-                    TextFormField(
+                    PasswordField(
                       controller: _passwordController,
-                      decoration: InputDecoration(
-                        hintText: 'Password',
-                        prefixIcon: const Icon(Icons.lock_outlined),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _showPassword
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                          ),
-                          onPressed: () {
-                            setState(() => _showPassword = !_showPassword);
-                          },
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      obscureText: !_showPassword,
-                      validator: (value) {
-                        if (value?.isEmpty ?? true) {
-                          return 'Password is required';
-                        }
-                        if ((value?.length ?? 0) < 6) {
-                          return 'Password must be at least 6 characters';
-                        }
-                        return null;
-                      },
                     ),
                     const SizedBox(height: 16),
 
                     // Confirm Password Field
-                    TextFormField(
+                    PasswordField(
                       controller: _confirmPasswordController,
-                      decoration: InputDecoration(
-                        hintText: 'Confirm Password',
-                        prefixIcon: const Icon(Icons.lock_outlined),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _showConfirmPassword
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                          ),
-                          onPressed: () {
-                            setState(
-                              () => _showConfirmPassword = !_showConfirmPassword,
-                            );
-                          },
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      obscureText: !_showConfirmPassword,
-                      validator: (value) {
-                        if (value?.isEmpty ?? true) {
-                          return 'Please confirm your password';
-                        }
-                        if (value != _passwordController.text) {
-                          return 'Passwords do not match';
-                        }
-                        return null;
-                      },
+                      hintText: 'Confirm Password',
+                      isConfirmation: true,
+                      passwordController: _passwordController,
                     ),
                     const SizedBox(height: 24),
 
@@ -255,36 +185,10 @@ class _SignupScreenState extends State<SignupScreen> {
                     // Sign Up Button
                     Consumer<AuthProvider>(
                       builder: (context, authProvider, _) {
-                        return ElevatedButton(
-                          onPressed: authProvider.isLoading
-                              ? null
-                              : () => _handleSignup(authProvider),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: authProvider.isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation(
-                                      Colors.white,
-                                    ),
-                                  ),
-                                )
-                              : const Text(
-                                  'Create Account',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
+                        return AuthButton(
+                          label: 'Create Account',
+                          isLoading: authProvider.isLoading,
+                          onPressed: () => _handleSignup(authProvider),
                         );
                       },
                     ),
@@ -302,7 +206,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () => context.go('/login'),
                     child: Text(
                       'Sign In',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
