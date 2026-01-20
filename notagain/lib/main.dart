@@ -30,20 +30,20 @@ void main() async {
         ChangeNotifierProvider(create: (_) => themeProvider),
         ChangeNotifierProvider(create: (_) => authProvider),
       ],
-      child: const MyApp(),
+      child: const NotAgainApp(),
     ),
   );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class NotAgainApp extends StatelessWidget {
+  const NotAgainApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Consumer2<ThemeProvider, AuthProvider>(
       builder: (context, themeProvider, authProvider, _) {
         return MaterialApp.router(
-          title: 'Notagain',
+          title: 'NotAgain',
           theme: AppTheme.lightTheme(),
           darkTheme: AppTheme.darkTheme(),
           themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
