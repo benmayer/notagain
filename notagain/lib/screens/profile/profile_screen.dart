@@ -5,12 +5,17 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final user = authProvider.user;
+    
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -32,7 +37,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'User Profile',
+                  user?.fullName ?? user?.email.split('@')[0] ?? 'User Profile',
                   style: context.theme.typography.lg.copyWith(
                     fontWeight: FontWeight.w600,
                     color: context.theme.colors.foreground,
@@ -40,7 +45,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'user@example.com',
+                  user?.email ?? 'user@example.com',
                   style: context.theme.typography.sm.copyWith(
                     color: context.theme.colors.mutedForeground,
                   ),
