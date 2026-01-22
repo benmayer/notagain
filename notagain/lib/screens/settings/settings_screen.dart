@@ -16,18 +16,18 @@ class SettingsScreen extends StatelessWidget {
   void _handleLogout(BuildContext context) {
     showFDialog<void>(
       context: context,
-      builder: (context, style, animation) => FDialog(
+      builder: (dialogContext, style, animation) => FDialog(
         title: const Text('Sign Out'),
         body: const Text('Are you sure you want to sign out?'),
         actions: [
           FButton(
-            onPress: () => Navigator.pop(context),
+            onPress: () => Navigator.pop(dialogContext),
             style: FButtonStyle.outline(),
             child: const Text('Cancel'),
           ),
           FButton(
             onPress: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               await context.read<AuthProvider>().logout();
               await Future.delayed(const Duration(milliseconds: 100));
               if (context.mounted) {
