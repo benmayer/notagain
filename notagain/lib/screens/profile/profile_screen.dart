@@ -4,6 +4,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:forui/forui.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -24,23 +25,24 @@ class ProfileScreen extends StatelessWidget {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.2),
+                    color: context.theme.colors.border,
                     borderRadius: BorderRadius.circular(40),
                   ),
-                  child: const Icon(Icons.person, size: 40),
+                  child: Icon(FIcons.user, size: 40, color: context.theme.colors.foreground),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'User Profile',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+                  style: context.theme.typography.lg.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: context.theme.colors.foreground,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'user@example.com',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey,
+                  style: context.theme.typography.sm.copyWith(
+                    color: context.theme.colors.mutedForeground,
                   ),
                 ),
               ],

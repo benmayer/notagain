@@ -194,14 +194,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       FButton(
                         onPress: authProvider.isLoading ? null : () => authProvider.signInWithApple(),
-                        prefix: authProvider.isLoading ? const FCircularProgress() : const Icon(Icons.apple),
+                        prefix: authProvider.isLoading ? const FCircularProgress() : const Icon(FIcons.apple),
                         style: FButtonStyle.outline(),
                         child: const Text('Sign in with Apple'),
                       ),
                       const SizedBox(height: 12),
                       FButton(
                         onPress: authProvider.isLoading ? null : () => authProvider.signInWithGoogle(),
-                        prefix: authProvider.isLoading ? const FCircularProgress() : const Icon(Icons.g_mobiledata),
+                        prefix: authProvider.isLoading ? const FCircularProgress() : const Icon(FIcons.mail),
                         style: FButtonStyle.outline(),
                         child: const Text('Sign in with Google'),
                       ),

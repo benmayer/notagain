@@ -73,7 +73,7 @@ class HelpSupportScreen extends _SettingsStubScreen {
       : super(
           title: 'Help & Support',
           description: 'Coming soon',
-          icon: FIcons.info,
+          icon: FIcons.lifeBuoy,
         );
 }
 
@@ -82,7 +82,7 @@ class FAQsScreen extends _SettingsStubScreen {
       : super(
           title: 'FAQs',
           description: 'Coming soon',
-          icon: FIcons.info,
+          icon: FIcons.fileQuestionMark,
         );
 }
 

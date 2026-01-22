@@ -38,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Profile'),
         suffixes: [
           FHeaderAction(
-            icon: const Icon(Icons.settings),
+            icon: const Icon(FIcons.settings),
             onPress: () => context.push('/settings'),
           ),
         ],
@@ -56,15 +56,15 @@ class _HomeScreenState extends State<HomeScreen> {
         onChange: _onNavItemTapped,
         children: const [
           FBottomNavigationBarItem(
-            icon: Icon(Icons.home),
+            icon: Icon(FIcons.house),
             label: Text('Home'),
           ),
           FBottomNavigationBarItem(
-            icon: Icon(Icons.add_circle),
+            icon: Icon(FIcons.squarePlus),
             label: Text('Start'),
           ),
           FBottomNavigationBarItem(
-            icon: Icon(Icons.person),
+            icon: Icon(FIcons.user),
             label: Text('Profile'),
           ),
         ],
@@ -87,12 +87,17 @@ class PlaceholderScreen extends StatelessWidget {
         children: [
           Text(
             '$title Screen',
-            style: Theme.of(context).textTheme.headlineSmall,
+            style: context.theme.typography.lg.copyWith(
+              fontWeight: FontWeight.w600,
+              color: context.theme.colors.foreground,
+            ),
           ),
           const SizedBox(height: 16),
           Text(
             'Coming soon...',
-            style: Theme.of(context).textTheme.bodyMedium,
+            style: context.theme.typography.sm.copyWith(
+              color: context.theme.colors.mutedForeground,
+            ),
           ),
         ],
       ),

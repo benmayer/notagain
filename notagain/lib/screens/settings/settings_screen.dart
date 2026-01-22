@@ -137,13 +137,13 @@ class SettingsScreen extends StatelessWidget {
                       label: const Text('Help & Support'),
                       children: [
                         FTile(
-                          prefix: const Icon(FIcons.info),
+                          prefix: const Icon(FIcons.lifeBuoy),
                           title: const Text('Help & Support'),
                           suffix: const Icon(FIcons.chevronRight),
                           onPress: () => context.push('/settings/help-support'),
                         ),
                         FTile(
-                          prefix: const Icon(FIcons.info),
+                          prefix: const Icon(FIcons.fileQuestionMark),
                           title: const Text('FAQs'),
                           suffix: const Icon(FIcons.chevronRight),
                           onPress: () => context.push('/settings/faqs'),
