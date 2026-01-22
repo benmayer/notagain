@@ -5,14 +5,11 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/auth_provider.dart';
-import '../../widgets/auth/email_field.dart';
-import '../../widgets/auth/password_field.dart';
-import '../../widgets/auth/auth_button.dart';
-import '../../widgets/auth/social_auth_buttons.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -55,12 +52,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
+    return FScaffold(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 32),
@@ -116,24 +111,47 @@ class _LoginScreenState extends State<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Email Field
-                    EmailField(
-                      controller: _emailController,
+                    FTextFormField.email(
+                      control: FTextFieldControl.managed(controller: _emailController),
+                      hint: 'john@example.com',
+                      validator: (value) {
+                        if (value?.isEmpty ?? true) {
+                          return 'Email is required';
+                        }
+                        if (!value!.contains('@')) {
+                          return 'Invalid email format';
+                        }
+                        return null;
+                      },
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
                     ),
                     const SizedBox(height: 16),
 
                     // Password Field
-                    PasswordField(
-                      controller: _passwordController,
+                    FTextFormField.password(
+                      control: FTextFieldControl.managed(controller: _passwordController),
+                      hint: 'Enter your password',
+                      validator: (value) {
+                        if (value?.isEmpty ?? true) {
+                          return 'Password is required';
+                        }
+                        if ((value?.length ?? 0) < 6) {
+                          return 'Password must be at least 6 characters';
+                        }
+                        return null;
+                      },
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
                     ),
                     const SizedBox(height: 24),
 
                     // Sign In Button
                     Consumer<AuthProvider>(
                       builder: (context, authProvider, _) {
-                        return AuthButton(
-                          label: 'Sign In',
-                          isLoading: authProvider.isLoading,
-                          onPressed: () => _handleLogin(authProvider),
+                        return FButton(
+                          onPress: authProvider.isLoading ? null : () => _handleLogin(authProvider),
+                          prefix: authProvider.isLoading ? const FCircularProgress() : null,
+                          style: FButtonStyle.primary(),
+                          child: Text(authProvider.isLoading ? 'Signing in...' : 'Sign In'),
                         );
                       },
                     ),
@@ -171,10 +189,23 @@ class _LoginScreenState extends State<LoginScreen> {
               // Social Auth Buttons
               Consumer<AuthProvider>(
                 builder: (context, authProvider, _) {
-                  return SocialAuthButtons(
-                    isLoading: authProvider.isLoading,
-                    onAppleTap: () => authProvider.signInWithApple(),
-                    onGoogleTap: () => authProvider.signInWithGoogle(),
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      FButton(
+                        onPress: authProvider.isLoading ? null : () => authProvider.signInWithApple(),
+                        prefix: authProvider.isLoading ? const FCircularProgress() : const Icon(Icons.apple),
+                        style: FButtonStyle.outline(),
+                        child: const Text('Sign in with Apple'),
+                      ),
+                      const SizedBox(height: 12),
+                      FButton(
+                        onPress: authProvider.isLoading ? null : () => authProvider.signInWithGoogle(),
+                        prefix: authProvider.isLoading ? const FCircularProgress() : const Icon(Icons.g_mobiledata),
+                        style: FButtonStyle.outline(),
+                        child: const Text('Sign in with Google'),
+                      ),
+                    ],
                   );
                 },
               ),
@@ -203,7 +234,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 }

@@ -1,62 +1,131 @@
 # Notagain - Component Documentation
 
+## ⚠️ CRITICAL: Pure Forui Theming Architecture
+
+**NotAgain uses PURE Forui theming only—NO Material theming.**
+
+- Theme source: `FThemes.slate.light` / `FThemes.slate.dark` (Forui's built-in themes)
+- Theme switching: `ThemeProvider` manages state and persists preference via SharedPreferences
+- App wrapper: `FAnimatedTheme` + `FToaster` at root (lib/main.dart)
+- All UI styling: Forui components only (buttons, inputs, scaffolds, etc.)
+- Material `MaterialApp` exists ONLY for GoRouter routing infrastructure—UI inside is 100% Forui
+- No Material theming (ThemeData, AppBar, Scaffold, etc.) for UI styling
+
+**Why Pure Forui?**
+1. ✅ Consistent design system enforcement
+2. ✅ Single source of truth for themes
+3. ✅ Simplified maintenance and style updates
+4. ✅ Forui's minimalist design intentional and tested
+
+---
+
 ## UI Components Overview
 
 All reusable UI components live in `lib/widgets/` organized by feature area. Below is documentation for each component and how to use them.
 
+### ⚠️ CRITICAL: Forui-First Component Rule
+
+**All UI components MUST use Forui components as the primary choice.** Material components are strictly forbidden.
+
+**Before creating ANY widget or adding ANY component:**
+1. ✅ Check [forui.dev](https://forui.dev/) Themes and Controls documentation
+2. ✅ Use the Forui equivalent if available (FButton, FTextField, FScaffold, etc.)
+3. ❌ NEVER use Material, Cupertino, or custom widgets
+4. ❌ If Forui doesn't have it, research alternative Forui patterns before asking
+
+**Forui Component Checklist - CRITICAL: Check forui.dev FIRST**
+- Buttons: `FButton` (primary, secondary, destructive, outline, ghost styles)
+- Inputs: `FTextFormField`, `FCheckbox`, `FRadio`, `FSwitch`, `FSelect`, `FMultiSelect`
+- Cards & Containers: `FCard`, `FAccordion`, `FTabs`
+- Navigation: `FHeader`, `FHeaderAction`, `FBottomNavigationBar`, `FBreadcrumb`, `FSidebar`
+- Scaffolds: `FScaffold` (with `header`, `footer`, `child` props)
+- Overlays: `FDialog`, `FPopover`, `FToaster`
+- Progress: `FCircularProgress`, `FLinearProgress`
+- Utility: `FAvatar`, `FBadge`, `FDivider`, `FIcons` (icon set)
+
 ### Shared Components (`lib/widgets/shared/`)
 
-#### `CustomPrimaryButton`
+> ⚠️ **Before adding custom button/form components**: Check if Forui has an equivalent. Use `FButton`, `FTextFormField`, `FCheckbox` instead of creating wrappers around Material components.
+
+#### `CustomPrimaryButton` ⚠️ DEPRECATED
+**Status**: Deprecated - Use `FButton(style: FButtonStyle.primary())` instead
 **Purpose**: Primary action button with brand color (#1fbacb)
 **Usage**: CTAs, main action buttons, confirmations
 
 ```dart
+// ❌ OLD (Don't use)
 CustomPrimaryButton(
   label: 'Create Rule',
   onPressed: () { /* Handle create */ },
-  isLoading: false,  // Optional loading state
+  isLoading: false,
+)
+
+// ✅ NEW (Use Forui)
+FButton(
+  onPress: () { /* Handle create */ },
+  style: FButtonStyle.primary(),
+  prefix: isLoading ? const FCircularProgress() : null,
+  child: const Text('Create Rule'),
 )
 ```
 
-#### `CustomSecondaryButton`
+#### `CustomSecondaryButton` ⚠️ DEPRECATED
+**Status**: Deprecated - Use `FButton(style: FButtonStyle.secondary())` instead
 **Purpose**: Secondary action button, less emphasis than primary
 **Usage**: Alternative actions, back buttons, secondary CTAs
 
 ```dart
-CustomSecondaryButton(
-  label: 'Cancel',
-  onPressed: () { /* Handle cancel */ },
+// ✅ Use Forui instead
+FButton(
+  onPress: () { /* Handle cancel */ },
+  style: FButtonStyle.secondary(),
+  child: const Text('Cancel'),
 )
 ```
 
-#### `CustomTertiaryButton`
+#### `CustomTertiaryButton` ⚠️ DEPRECATED
+**Status**: Deprecated - Use `FButton(style: FButtonStyle.outline())` instead
 **Purpose**: Minimal button, text-only with brand color
 **Usage**: Inline actions, optional actions, links
 
 ```dart
-CustomTertiaryButton(
-  label: 'Learn More',
-  onPressed: () { /* Handle learn more */ },
+// ✅ Use Forui instead
+FButton(
+  onPress: () { /* Handle learn more */ },
+  style: FButtonStyle.outline(),
+  child: const Text('Learn More'),
 )
 ```
 
 ### App Bar
 
-#### `NotagainAppBar`
-**Purpose**: Custom app bar with theme support and consistent styling
+#### App Bar (Now using `FScaffold` with `FHeader`)
+**Status**: Material AppBar deprecated - Use `FScaffold` with `FHeader` instead
+**Purpose**: Consistent top bar with theme support
 **Features**: Title, back button, actions menu
 
 ```dart
-NotagainAppBar(
-  title: 'Create Blocking Rule',
-  showBackButton: true,
-  onBackPressed: () => Navigator.pop(context),
-  actions: [
-    IconButton(
-      icon: Icon(Icons.help),
-      onPressed: () { /* Show help */ },
-    ),
-  ],
+// ❌ OLD (Don't use Material AppBar)
+Scaffold(
+  appBar: AppBar(
+    title: Text('My Screen'),
+    actions: [IconButton(...)],
+  ),
+  body: child,
+)
+
+// ✅ NEW (Use FScaffold with FHeader)
+FScaffold(
+  header: FHeader(
+    title: const Text('My Screen'),
+    suffixes: [
+      FHeaderAction(
+        icon: const Icon(Icons.help),
+        onPress: () { /* Handle action */ },
+      ),
+    ],
+  ),
+  child: child,
 )
 ```
 
@@ -167,30 +236,43 @@ SocialAuthButton(
 ### Theme-Aware Components
 
 All Forui components automatically adapt to light/dark mode through:
-1. **AppTheme** configuration in `core/theme/app_theme.dart`
-2. **ThemeProvider** for mode switching
-3. **Consumer<ThemeProvider>** pattern for listening to changes
+1. **FAnimatedTheme** wrapping the app at root (`lib/main.dart`)
+2. **FThemes.slate** (light/dark) as the source of truth in `ThemeProvider`
+3. **ThemeProvider** for mode switching (manages shared preferences persistence)
+4. Automatic theming - no need to manually check brightness in Forui components
+
+**Key Advantage**: When using Forui components, your UI automatically inherits Forui's slate theme colors and respects light/dark mode changes without additional code.
 
 **Example**: Using Forui button with automatic theming
 ```dart
-FButton.primary(
-  label: 'Next',
+// ✅ Automatically uses Forui slate theme in light/dark modes
+FButton(
+  style: FButtonStyle.primary(),
   onPress: () { /* Handle action */ },
+  child: const Text('Next'),
 )
-// Automatically uses primary color (#1fbacb) in light/dark modes
+
+// ✅ Access theme colors anywhere in widget tree
+final bgColor = context.theme.colors.background;
+final fgColor = context.theme.colors.foreground;
 ```
+
+**DO NOT** create custom Material button wrappers. Use Forui directly.
 
 ## Adding New Components
 
 ### Component Checklist
+- [ ] **CRITICAL**: Check [forui.dev](https://forui.dev/) Themes and Controls documentation FIRST - use Forui component if available
 - [ ] Create file in `lib/widgets/[feature_area]/[component_name].dart`
-- [ ] Add comprehensive inline documentation
-- [ ] Make component theme-aware (respect light/dark modes)
-- [ ] Add example usage in the component doc
+- [ ] Use ONLY Forui components - Material/Cupertino are forbidden
+- [ ] Add comprehensive inline documentation with Forui usage examples
+- [ ] Make component theme-aware through Forui's automatic theming (access via `context.theme`)
+- [ ] Add example usage in the component doc showing Forui components
 - [ ] Create widget test in `test/widget/`
-- [ ] Update this documentation
+- [ ] Update COMPONENTS.md documentation
 
 ### Component Template
+
 ```dart
 /// [ComponentName]
 /// 
@@ -207,8 +289,11 @@ FButton.primary(
 ///   onAction: () { /* Handle */ },
 /// )
 /// ```
+/// 
+/// Note: Uses Forui components for consistent theming and design system enforcement.
 
 import 'package:flutter/material.dart';
+import 'package:forui/forui.dart';
 
 class ComponentName extends StatelessWidget {
   final String property;
@@ -222,8 +307,12 @@ class ComponentName extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      // Implementation
+    // ✅ Use Forui components (e.g., FButton, FCard, FTextField)
+    return FCard(
+      child: FButton(
+        onPress: onAction,
+        child: Text(property),
+      ),
     );
   }
 }
@@ -263,34 +352,65 @@ class ComponentName extends StatelessWidget {
 
 ## Styling & Theming Guidelines
 
-### Colors
-- **Primary**: Use `AppColors.primary` (#1fbacb) for CTAs and highlights
-- **Text**: Use `AppColors.lightOnBackground` / `AppColors.darkOnBackground` based on mode
-- **Borders**: Use `AppColors.lightBorder` / `AppColors.darkBorder`
+### Colors (Forui Slate Theme)
+- Use `context.theme.colors` to access Forui's slate theme colors
+- Primary actions: `context.theme.colors.primary` (blue from slate theme)
+- Text: `context.theme.colors.foreground` (light/dark aware)
+- Backgrounds: `context.theme.colors.background`, `context.theme.colors.surface`
+- Borders: `context.theme.colors.border`
+- Destructive: `context.theme.colors.destructive` (for errors, delete actions)
 
-### Typography
-Use Material 3 text styles from `Theme.of(context).textTheme`:
-- Headings: `.headlineSmall`, `.headlineMedium`, `.headlineLarge`
-- Body: `.bodySmall`, `.bodyMedium`, `.bodyLarge`
-- Labels: `.labelSmall`, `.labelMedium`, `.labelLarge`
-
-### Spacing
-- Use `SizedBox` for fixed spacing
-- Common: 8, 12, 16, 24, 32 logical pixels
-- Use padding/margin consistently
-
-### Dark Mode Support
-Wrap theme-dependent code in:
 ```dart
-final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-final color = isDarkMode ? AppColors.darkSurface : AppColors.lightSurface;
+// ✅ Use Forui theme colors
+FButton(
+  style: (style) => style.copyWith(
+    backgroundColor: context.theme.colors.primary,
+  ),
+  onPress: () {},
+  child: const Text('Action'),
+)
 ```
 
-Or use Consumer pattern:
+### Typography (Forui Typography)
+- Access via `context.theme.typography`
+- Sizes: `xs`, `sm`, `base`, `lg`, `xl`, `xxl`
+- All text rendering automatically inherits Forui's configured font family and sizing
+
 ```dart
-Consumer<ThemeProvider>(
-  builder: (context, themeProvider, _) {
-    return MyWidget(isDarkMode: themeProvider.isDarkMode);
+// ✅ Use Forui typography
+Text(
+  'Heading',
+  style: context.theme.typography.lg,
+)
+```
+
+### Spacing
+- Use `SizedBox` with Forui spacing values
+- Common: 4, 8, 12, 16, 24, 32 logical pixels
+- Use padding/margin consistently via `Padding`, `Margin` (Forui utilities)
+
+### Dark Mode Support
+No manual dark mode checks needed—Forui handles it automatically:
+
+```dart
+// ✅ Colors automatically adapt to theme
+Container(
+  color: context.theme.colors.background,
+  child: Text('Auto-themed', style: context.theme.typography.base),
+)
+
+// ❌ DON'T manually check brightness
+final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+```
+
+### Theme Switching
+```dart
+// Toggle dark mode
+context.read<ThemeProvider>().toggleTheme();
+
+// or Set explicitly
+context.read<ThemeProvider>().setDarkMode(true);
+```
   },
 )
 ```

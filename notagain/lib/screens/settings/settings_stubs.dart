@@ -4,6 +4,8 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:forui/forui.dart';
+import 'package:go_router/go_router.dart';
 
 class _SettingsStubScreen extends StatelessWidget {
   final String title;
@@ -18,23 +20,37 @@ class _SettingsStubScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
+    return FScaffold(
+      header: FHeader.nested(
+        title: Text(title),
+        prefixes: [
+          FHeaderAction.back(onPress: () => context.pop()),
+        ],
+      ),
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 64, color: Colors.grey),
+            Icon(
+              icon,
+              size: 64,
+              color: context.theme.colors.mutedForeground,
+            ),
             const SizedBox(height: 16),
             Text(
               title,
-              style: Theme.of(context).textTheme.headlineSmall,
+              style: context.theme.typography.lg.copyWith(
+                fontWeight: FontWeight.w600,
+                color: context.theme.colors.foreground,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               description,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: context.theme.typography.sm.copyWith(
+                color: context.theme.colors.mutedForeground,
+              ),
             ),
           ],
         ),
@@ -48,7 +64,7 @@ class DeviceSettingsScreen extends _SettingsStubScreen {
       : super(
           title: 'Device Settings',
           description: 'Coming soon',
-          icon: Icons.phone_iphone,
+          icon: FIcons.smartphone,
         );
 }
 
@@ -57,7 +73,7 @@ class HelpSupportScreen extends _SettingsStubScreen {
       : super(
           title: 'Help & Support',
           description: 'Coming soon',
-          icon: Icons.help_outline,
+          icon: FIcons.info,
         );
 }
 
@@ -66,7 +82,7 @@ class FAQsScreen extends _SettingsStubScreen {
       : super(
           title: 'FAQs',
           description: 'Coming soon',
-          icon: Icons.question_answer_outlined,
+          icon: FIcons.info,
         );
 }
 
@@ -75,7 +91,7 @@ class FeedbackScreen extends _SettingsStubScreen {
       : super(
           title: 'Give Feedback',
           description: 'Coming soon',
-          icon: Icons.feedback_outlined,
+          icon: FIcons.messageSquare,
         );
 }
 
@@ -84,7 +100,7 @@ class TermsOfServiceScreen extends _SettingsStubScreen {
       : super(
           title: 'Terms of Service',
           description: 'Coming soon',
-          icon: Icons.description_outlined,
+          icon: FIcons.file,
         );
 }
 
@@ -93,6 +109,6 @@ class PrivacyPolicyScreen extends _SettingsStubScreen {
       : super(
           title: 'Privacy Policy',
           description: 'Coming soon',
-          icon: Icons.privacy_tip_outlined,
+          icon: FIcons.shield,
         );
 }

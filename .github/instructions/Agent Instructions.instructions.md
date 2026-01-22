@@ -1,3 +1,8 @@
+---
+applyTo: '**'
+---
+Provide project context and coding guidelines that AI should follow when generating code, answering questions, or reviewing changes.
+
 # Copilot Instructions for NotAgain
 
 ## Project Overview
@@ -43,7 +48,11 @@ ScaffoldMessenger.of(context).showSnackBar(
 ```
 
 ### Theming
-**Pattern**: Material 3 + Forui theming unified in `lib/core/theme/app_theme.dart`. Primary color `#1fbacb` (teal) applied app-wide. ThemeProvider manages light/dark mode persistence via SharedPreferences.
+**Pattern**: Pure Forui theming with `FThemes.slate.light`/`.dark`. **NO Material theming** — Forui is the single source of truth for all UI styling.
+- `ThemeProvider` in `lib/providers/` manages theme state and persistence via SharedPreferences
+- `lib/main.dart` wraps app with `FAnimatedTheme` (from Forui's theme switcher) and `FToaster` (toast notifications)
+- Theme switching: `context.read<ThemeProvider>().setDarkMode(true/false)` triggers FAnimatedTheme transition
+- **Critical**: All UI components must be Forui components; Material components are NOT used for styling
 
 ### Service Layer (Supabase)
 **Pattern**: SupabaseService is a singleton that wraps all Supabase SDK calls. Initialized in `main()` with credentials. All auth, CRUD, and analytics queries flow through this service.
@@ -53,11 +62,14 @@ ScaffoldMessenger.of(context).showSnackBar(
 **Pattern**: Reusable form widgets in `lib/widgets/auth/` (e.g., EmailField, PasswordField). Validation logic in models or utils, displayed inline via FormField.
 
 ### UI Component Guidelines
-**Critical Rule**: Always use Forui components first for UI elements (buttons, inputs, cards, etc.). Forui is the primary UI framework for this project.
-- Check [forui.dev](https://forui.dev/) documentation before creating custom widgets
-- Only create custom components when Forui lacks the needed functionality
-- **Ask for permission** before implementing custom UI components—there may be a Forui solution already
-- Custom widgets should wrap or extend Forui components when possible to maintain design consistency
+**CRITICAL RULE - Forui ONLY**: All UI components must be from Forui library. Material, Cupertino, and custom widgets are strictly forbidden.
+- **Mandatory**: Check [forui.dev](https://forui.dev/) documentation for Themes and Controls **before** adding ANY component
+- Forui provides 40+ components: buttons, inputs, cards, navigation, overlays, dialogs, progress, avatars, badges, etc.
+- Common Forui controls: `FButton`, `FTextFormField`, `FCheckbox`, `FSwitch`, `FCard`, `FScaffold`, `FHeader`, `FBottomNavigationBar`, `FToaster`, `FDialog`
+- Icon system: Use `FIcons` class (e.g., `FIcons.settings`, `FIcons.mail`, `FIcons.house`)
+- **Exception**: GoRouter requires `MaterialApp.router` at root for navigation—keep minimal; all UI inside is Forui-only
+- Style customization: Use `style: (style) => style.copyWith(...)` pattern on Forui components
+- **Never** create custom widgets for standard UI patterns—Forui already covers them
 
 ## Developer Workflows
 
@@ -76,6 +88,16 @@ flutter run
 3. Create models in `lib/models/` if needed
 4. Create Screen in `lib/screens/[feature]/`
 5. Wire route in `lib/routing/app_router.dart`
+
+### Forui Documentation Reference
+**ALWAYS check Forui docs before implementing any UI**:
+- [Forui Themes](https://forui.dev/) - Theme customization and FAnimatedTheme patterns
+- [Forui Controls](https://forui.dev/) - Complete component library reference
+- Available theme families: `FThemes.slate`, `.zinc`, `.amber`, `.emerald`, `.rose` (each with `.light` and `.dark` variants)
+- Component naming: All Forui components use `F` prefix (e.g., `FButton`, `FTextFormField`, `FCard`)
+- Custom styling: Use `style: (style) => style.copyWith(...)` pattern for component-level customization
+- Theme access in widgets: `context.theme` for `FThemeData`, `context.theme.colors` for color palette
+- If a component isn't in Forui documentation, it doesn't exist—research alternative Forui patterns or ask
 
 ### Testing on Device
 - iOS: `flutter run -d [device_id]`

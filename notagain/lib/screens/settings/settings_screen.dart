@@ -1,12 +1,11 @@
 // Settings Screen
 // 
-// User settings and preferences management
+// User settings and preferences management using pure Forui components
 
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/settings_provider.dart';
@@ -46,142 +45,148 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FScaffold(
+      header: FHeader.nested(
+        title: const Text('Settings'),
+        prefixes: [
+          FHeaderAction.back(onPress: () => context.pop()),
+        ],
+      ),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              child: Text(
-                'Settings',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-            ),
-            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-              
-              // Account Section
-              _SettingsSection(
-                title: 'Account',
-                children: [
-                  Consumer<AuthProvider>(
-                    builder: (context, authProvider, _) {
-                      return _SettingsTile(
-                        icon: Icons.email_outlined,
-                        title: 'Email Address',
-                        subtitle: authProvider.user?.email ?? 'Not available',
-                        enabled: false,
-                      );
-                    },
-                  ),
-                ],
-              ),
-
-              // Preferences Section
-              _SettingsSection(
-                title: 'Preferences',
-                children: [
-                  Consumer<SettingsProvider>(
-                    builder: (context, settingsProvider, _) {
-                      return _SettingsTile(
-                        icon: Icons.language,
-                        title: 'App Language',
-                        subtitle: settingsProvider.language,
-                        onTap: () => _showLanguagePicker(context, settingsProvider),
-                      );
-                    },
-                  ),
-                  GestureDetector(
-                    onTap: () => context.push('/settings/device-settings'),
-                    child: const _SettingsTile(
-                      icon: Icons.phone_iphone,
-                      title: 'Device Settings',
-                      subtitle: 'Configure device preferences',
+                  // Account Section
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Consumer<AuthProvider>(
+                      builder: (context, authProvider, _) {
+                        return FTileGroup(
+                          label: const Text('Account'),
+                          children: [
+                            FTile(
+                              prefix: const Icon(FIcons.mail),
+                              title: const Text('Email Address'),
+                              details: Text(authProvider.user?.email ?? 'Not available'),
+                              enabled: false,
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
-                  Consumer<ThemeProvider>(
-                    builder: (context, themeProvider, _) {
-                      return _SettingsTile(
-                        icon: Icons.brightness_6,
-                        title: 'Display',
-                        subtitle: themeProvider.isDarkMode ? 'Dark Mode' : 'Light Mode',
-                        onTap: () {
-                          themeProvider.toggleTheme();
-                        },
-                        trailing: Icon(
-                          themeProvider.isDarkMode
-                              ? Icons.dark_mode
-                              : Icons.light_mode,
+
+                  // Preferences Section
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Consumer<SettingsProvider>(
+                      builder: (context, settingsProvider, _) {
+                        return FTileGroup(
+                          label: const Text('Preferences'),
+                          children: [
+                            FTile(
+                              prefix: const Icon(FIcons.globe),
+                              title: const Text('App Language'),
+                              suffix: const Icon(FIcons.chevronRight),
+                              onPress: () => _showLanguagePicker(context, settingsProvider),
+                            ),
+                            FTile(
+                              prefix: const Icon(FIcons.smartphone),
+                              title: const Text('Device Settings'),
+                              suffix: const Icon(FIcons.chevronRight),
+                              onPress: () => context.push('/settings/device-settings'),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+
+                  // Display Section
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Consumer<ThemeProvider>(
+                      builder: (context, themeProvider, _) {
+                        return FTileGroup(
+                          label: const Text('Display'),
+                          children: [
+                            FTile(
+                              prefix: const Icon(FIcons.monitor),
+                              title: const Text('Dark Mode'),
+                              suffix: FSwitch(
+                                value: themeProvider.isDarkMode,
+                                onChange: (value) {
+                                  themeProvider.setDarkMode(value);
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+
+                  // Help & Support Section
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: FTileGroup(
+                      label: const Text('Help & Support'),
+                      children: [
+                        FTile(
+                          prefix: const Icon(FIcons.info),
+                          title: const Text('Help & Support'),
+                          suffix: const Icon(FIcons.chevronRight),
+                          onPress: () => context.push('/settings/help-support'),
                         ),
-                      );
-                    },
+                        FTile(
+                          prefix: const Icon(FIcons.info),
+                          title: const Text('FAQs'),
+                          suffix: const Icon(FIcons.chevronRight),
+                          onPress: () => context.push('/settings/faqs'),
+                        ),
+                        FTile(
+                          prefix: const Icon(FIcons.messageSquare),
+                          title: const Text('Give Feedback'),
+                          suffix: const Icon(FIcons.chevronRight),
+                          onPress: () => context.push('/settings/feedback'),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
 
-              // Help & Support Section
-              _SettingsSection(
-                title: 'Help & Support',
-                children: [
-                  GestureDetector(
-                    onTap: () => context.push('/settings/help-support'),
-                    child: const _SettingsTile(
-                      icon: Icons.help_outline,
-                      title: 'Help & Support',
-                      subtitle: 'Get help with the app',
-                    ),
+                  // Terms & Policies Section
+                  FTileGroup(
+                    label: const Text('Terms & Policies'),
+                    children: [
+                      FTile(
+                        prefix: const Icon(FIcons.fileText),
+                        title: const Text('Terms of Service'),
+                        suffix: const Icon(FIcons.chevronRight),
+                        onPress: () => context.push('/settings/terms-of-service'),
+                      ),
+                      FTile(
+                        prefix: const Icon(FIcons.shield),
+                        title: const Text('Privacy Policy'),
+                        suffix: const Icon(FIcons.chevronRight),
+                        onPress: () => context.push('/settings/privacy-policy'),
+                      ),
+                    ],
                   ),
-                  GestureDetector(
-                    onTap: () => context.push('/settings/faqs'),
-                    child: const _SettingsTile(
-                      icon: Icons.question_answer_outlined,
-                      title: 'FAQs',
-                      subtitle: 'Frequently asked questions',
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => context.push('/settings/feedback'),
-                    child: const _SettingsTile(
-                      icon: Icons.feedback_outlined,
-                      title: 'Give Feedback',
-                      subtitle: 'Share your thoughts with us',
-                    ),
-                  ),
-                ],
-              ),
-
-              // Terms & Policies Section
-              _SettingsSection(
-                title: 'Terms & Policies',
-                children: [
-                  GestureDetector(
-                    onTap: () => context.push('/settings/terms-of-service'),
-                    child: const _SettingsTile(
-                      icon: Icons.description_outlined,
-                      title: 'Terms of Service',
-                      subtitle: 'Read our terms',
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => context.push('/settings/privacy-policy'),
-                    child: const _SettingsTile(
-                      icon: Icons.privacy_tip_outlined,
-                      title: 'Privacy Policy',
-                      subtitle: 'Read our privacy policy',
-                    ),
-                  ),
-                ],
-              ),
-
                 ],
               ),
             ),
+            // Divider
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: FDivider(),
+            ),
             // Logout Button
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: FButton(
                 onPress: () => _handleLogout(context),
                 style: FButtonStyle.destructive(),
@@ -209,29 +214,31 @@ class SettingsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: settingsProvider.availableLanguages.map((lang) {
               return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
+                padding: const EdgeInsets.symmetric(vertical: 6),
                 child: GestureDetector(
                   onTap: () {
                     settingsProvider.setLanguage(lang.key);
                     Navigator.pop(context);
                   },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: settingsProvider.language == lang.key
-                            ? AppColors.primary
-                            : Colors.grey.shade300,
+                  child: FCard.raw(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            lang.value,
+                            style: context.theme.typography.base.copyWith(
+                              color: context.theme.colors.foreground,
+                            ),
+                          ),
+                          if (settingsProvider.language == lang.key)
+                            Icon(
+                              FIcons.check,
+                              color: context.theme.colors.primary,
+                            ),
+                        ],
                       ),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(lang.value),
-                        if (settingsProvider.language == lang.key)
-                          Icon(Icons.check, color: AppColors.primary),
-                      ],
                     ),
                   ),
                 ),
@@ -250,120 +257,3 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-class _SettingsSection extends StatelessWidget {
-  final String title;
-  final List<Widget> children;
-
-  const _SettingsSection({
-    required this.title,
-    required this.children,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(0, 24, 0, 12),
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: AppColors.primary,
-            ),
-          ),
-        ),
-        FCard.raw(
-          child: Column(
-            children: [
-              for (int i = 0; i < children.length; i++) ...[
-                children[i],
-                if (i < children.length - 1)
-                  Divider(
-                    height: 1,
-                    color: colorScheme.outline.withValues(alpha: 0.2),
-                  ),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _SettingsTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String? subtitle;
-  final VoidCallback? onTap;
-  final Widget? trailing;
-  final bool enabled;
-
-  const _SettingsTile({
-    required this.icon,
-    required this.title,
-    this.subtitle,
-    this.onTap,
-    this.trailing,
-    this.enabled = true,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    
-    return GestureDetector(
-      onTap: enabled ? onTap : null,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        color: enabled && onTap != null
-            ? colorScheme.surface.withValues(alpha: 0.5)
-            : Colors.transparent,
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: enabled ? colorScheme.primary : colorScheme.outline,
-              size: 24,
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: enabled ? null : colorScheme.outline,
-                    ),
-                  ),
-                  if (subtitle != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        subtitle!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.outline,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            trailing ??
-                (onTap != null && enabled
-                    ? Icon(
-                        Icons.chevron_right,
-                        color: colorScheme.outline,
-                      )
-                    : const SizedBox.shrink()),
-          ],
-        ),
-      ),
-    );
-  }
-}

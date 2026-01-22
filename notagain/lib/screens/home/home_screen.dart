@@ -3,7 +3,10 @@
 // Main dashboard after authentication
 
 import 'package:flutter/material.dart';
+import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
+import '../start/start_screen.dart';
+import '../profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,8 +20,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static const List<Widget> _screens = <Widget>[
     PlaceholderScreen(title: 'Home'),
-    PlaceholderScreen(title: 'Start'),
-    PlaceholderScreen(title: 'Profile'),
+    StartScreen(),
+    ProfileScreen(),
   ];
 
   void _onNavItemTapped(int index) {
@@ -27,41 +30,46 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _navigateToSettings(BuildContext context) {
-    context.push('/settings');
+  List<FHeader> _buildHeaders(BuildContext context) {
+    return [
+      const FHeader(title: Text('Home')),
+      const FHeader(title: Text('Start')),
+      FHeader(
+        title: const Text('Profile'),
+        suffixes: [
+          FHeaderAction(
+            icon: const Icon(Icons.settings),
+            onPress: () => context.push('/settings'),
+          ),
+        ],
+      ),
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notagain'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => _navigateToSettings(context),
-          ),
-        ],
-      ),
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onNavItemTapped,
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
+    final headers = _buildHeaders(context);
+    return FScaffold(
+      header: headers[_selectedIndex],
+      footer: FBottomNavigationBar(
+        index: _selectedIndex,
+        onChange: _onNavItemTapped,
+        children: const [
+          FBottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'Home',
+            label: Text('Home'),
           ),
-          BottomNavigationBarItem(
+          FBottomNavigationBarItem(
             icon: Icon(Icons.add_circle),
-            label: 'Start',
+            label: Text('Start'),
           ),
-          BottomNavigationBarItem(
+          FBottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: 'Profile',
+            label: Text('Profile'),
           ),
         ],
       ),
+      child: _screens[_selectedIndex],
     );
   }
 }

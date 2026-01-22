@@ -4,13 +4,11 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/auth_provider.dart';
-import '../../widgets/auth/email_field.dart';
-import '../../widgets/auth/password_field.dart';
-import '../../widgets/auth/auth_button.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -65,12 +63,10 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
+    return FScaffold(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 16),
@@ -119,77 +115,97 @@ class _SignupScreenState extends State<SignupScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Full Name Field
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: InputDecoration(
-                        hintText: 'Full Name',
-                        prefixIcon: const Icon(Icons.person_outlined),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
+                    FTextFormField(
+                      control: FTextFieldControl.managed(controller: _nameController),
+                      hint: 'Full Name',
                       validator: (value) {
                         if (value?.isEmpty ?? true) {
                           return 'Name is required';
                         }
                         return null;
                       },
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
                     ),
                     const SizedBox(height: 16),
 
                     // Email Field
-                    EmailField(
-                      controller: _emailController,
+                    FTextFormField.email(
+                      control: FTextFieldControl.managed(controller: _emailController),
+                      hint: 'john@example.com',
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Email is required';
+                        }
+                        const pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
+                        if (!RegExp(pattern).hasMatch(value)) {
+                          return 'Please enter a valid email';
+                        }
+                        return null;
+                      },
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
                     ),
                     const SizedBox(height: 16),
 
                     // Password Field
-                    PasswordField(
-                      controller: _passwordController,
+                    FTextFormField.password(
+                      control: FTextFieldControl.managed(controller: _passwordController),
+                      hint: 'Password',
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Password is required';
+                        }
+                        if (value.length < 6) {
+                          return 'Password must be at least 6 characters';
+                        }
+                        return null;
+                      },
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
                     ),
                     const SizedBox(height: 16),
 
                     // Confirm Password Field
-                    PasswordField(
-                      controller: _confirmPasswordController,
-                      hintText: 'Confirm Password',
-                      isConfirmation: true,
-                      passwordController: _passwordController,
+                    FTextFormField.password(
+                      control: FTextFieldControl.managed(controller: _confirmPasswordController),
+                      hint: 'Confirm Password',
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please confirm your password';
+                        }
+                        if (value != _passwordController.text) {
+                          return 'Passwords do not match';
+                        }
+                        return null;
+                      },
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
                     ),
                     const SizedBox(height: 24),
 
                     // Terms Agreement Checkbox
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: _agreedToTerms,
-                          onChanged: (value) {
-                            setState(() => _agreedToTerms = value ?? false);
-                          },
-                          activeColor: AppColors.primary,
-                        ),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() => _agreedToTerms = !_agreedToTerms);
-                            },
-                            child: Text(
-                              'I agree to the Terms of Service and Privacy Policy',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ),
-                        ),
-                      ],
+                    FCheckbox(
+                      value: _agreedToTerms,
+                      onChange: (value) {
+                        setState(() => _agreedToTerms = value);
+                      },
+                      label: const Text(
+                        'I agree to the Terms of Service and Privacy Policy',
+                      ),
                     ),
                     const SizedBox(height: 24),
 
                     // Sign Up Button
                     Consumer<AuthProvider>(
                       builder: (context, authProvider, _) {
-                        return AuthButton(
-                          label: 'Create Account',
-                          isLoading: authProvider.isLoading,
-                          onPressed: () => _handleSignup(authProvider),
+                        return FButton(
+                          onPress: (!_agreedToTerms || authProvider.isLoading) 
+                            ? null 
+                            : () => _handleSignup(authProvider),
+                          prefix: authProvider.isLoading 
+                            ? const FCircularProgress() 
+                            : null,
+                          style: FButtonStyle.primary(),
+                          child: Text(
+                            authProvider.isLoading ? 'Creating Account...' : 'Create Account'
+                          ),
                         );
                       },
                     ),
@@ -221,7 +237,6 @@ class _SignupScreenState extends State<SignupScreen> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 }
