@@ -1,6 +1,7 @@
 /// Auth Button Widget
 /// 
 /// Reusable primary button for auth forms with loading state
+library;
 
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';

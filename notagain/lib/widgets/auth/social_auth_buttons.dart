@@ -1,6 +1,7 @@
 /// Social Auth Buttons Widget
 /// 
 /// Reusable buttons for Apple and Google authentication
+library;
 
 import 'package:flutter/material.dart';
 

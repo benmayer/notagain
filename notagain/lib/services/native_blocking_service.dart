@@ -1,20 +1,21 @@
-/// Native Blocking Service
-/// 
-/// Handles platform-specific blocking functionality:
-/// 
-/// iOS:
-/// - Uses Screen Time API for app blocking
-/// - Manages managed open restrictions
-/// - Handles passcode bypass scenarios
-/// 
-/// Android (for future implementation):
-/// - Uses Device Admin API for app blocking
-/// - Manages installation restrictions
-/// - Handles VPN-based blocking if implemented
-/// 
-/// This service communicates with native code via platform channels
-/// and provides a unified interface for the app to enforce blocking rules.
+// Native Blocking Service
+// 
+// Handles platform-specific blocking functionality:
+// 
+// iOS:
+// - Uses Screen Time API for app blocking
+// - Manages managed open restrictions
+// - Handles passcode bypass scenarios
+// 
+// Android (for future implementation):
+// - Uses Device Admin API for app blocking
+// - Manages installation restrictions
+// - Handles VPN-based blocking if implemented
+// 
+// This service communicates with native code via platform channels
+// and provides a unified interface for the app to enforce blocking rules.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 class NativeBlockingService {
@@ -29,7 +30,7 @@ class NativeBlockingService {
       ) ?? false;
       return result;
     } on PlatformException catch (e) {
-      print('Failed to request Screen Time access: ${e.message}');
+      debugPrint('❌ Failed to request Screen Time access: ${e.message}');
       return false;
     }
   }
@@ -42,7 +43,7 @@ class NativeBlockingService {
       ) ?? false;
       return result;
     } on PlatformException catch (e) {
-      print('Failed to check Screen Time access: ${e.message}');
+      debugPrint('❌ Failed to check Screen Time access: ${e.message}');
       return false;
     }
   }
@@ -65,7 +66,7 @@ class NativeBlockingService {
       ) ?? false;
       return result;
     } on PlatformException catch (e) {
-      print('Failed to block app: ${e.message}');
+      debugPrint('❌ Failed to block app: ${e.message}');
       return false;
     }
   }
@@ -85,7 +86,7 @@ class NativeBlockingService {
       ) ?? false;
       return result;
     } on PlatformException catch (e) {
-      print('Failed to unblock app: ${e.message}');
+      debugPrint('❌ Failed to unblock app: ${e.message}');
       return false;
     }
   }
@@ -99,7 +100,7 @@ class NativeBlockingService {
       ) ?? [];
       return result.cast<String>();
     } on PlatformException catch (e) {
-      print('Failed to get blocked apps: ${e.message}');
+      debugPrint('❌ Failed to get blocked apps: ${e.message}');
       return [];
     }
   }

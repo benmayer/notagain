@@ -1,6 +1,7 @@
 /// Password Input Field Widget
 /// 
 /// Reusable password input with visibility toggle and validation
+library;
 
 import 'package:flutter/material.dart';
 

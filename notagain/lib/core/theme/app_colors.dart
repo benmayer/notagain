@@ -2,6 +2,7 @@
 /// 
 /// Defines the Notagain app color palette with primary brand color,
 /// neutral colors for light/dark modes, and semantic colors.
+library;
 
 import 'package:flutter/material.dart';
 

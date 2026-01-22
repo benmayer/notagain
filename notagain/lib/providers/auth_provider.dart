@@ -4,6 +4,7 @@
 /// - User session
 /// - Login/signup/logout operations
 /// - Auth status (authenticated, loading, error)
+library;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

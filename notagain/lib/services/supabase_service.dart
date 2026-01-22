@@ -10,10 +10,12 @@
 /// This service acts as the bridge between the app and Supabase backend,
 /// abstracting away Supabase SDK details and providing a clean API for
 /// other parts of the application.
+library;
 
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user.dart' as app_user;
+import '../models/blocking_rule.dart';
 
 class SupabaseService {
   static final SupabaseService _instance = SupabaseService._internal();
@@ -169,15 +171,23 @@ class SupabaseService {
   /// Sign in with Apple
   Future<app_user.User?> signInWithApple() async {
     try {
-      final response = await _client.auth.signInWithOAuth(
+      debugPrint('🔐 SupabaseService: Starting Apple Sign-In');
+      await _client.auth.signInWithOAuth(
         OAuthProvider.apple,
       );
-
-      if (response) {
-        return currentUser;
+      
+      final authUser = _client.auth.currentUser;
+      if (authUser != null) {
+        debugPrint('✅ SupabaseService: Apple Sign-In successful for ${authUser.email}');
+        return app_user.User(
+          id: authUser.id,
+          email: authUser.email ?? '',
+          createdAt: _parseDateTime(authUser.createdAt),
+        );
       }
       return null;
     } catch (e) {
+      debugPrint('❌ SupabaseService: Apple Sign-In failed: $e');
       throw Exception('Apple Sign-In failed: $e');
     }
   }
@@ -185,54 +195,313 @@ class SupabaseService {
   /// Sign in with Google
   Future<app_user.User?> signInWithGoogle() async {
     try {
-      final response = await _client.auth.signInWithOAuth(
+      debugPrint('🔐 SupabaseService: Starting Google Sign-In');
+      await _client.auth.signInWithOAuth(
         OAuthProvider.google,
       );
-
-      if (response) {
-        return currentUser;
+      
+      final authUser = _client.auth.currentUser;
+      if (authUser != null) {
+        debugPrint('✅ SupabaseService: Google Sign-In successful for ${authUser.email}');
+        return app_user.User(
+          id: authUser.id,
+          email: authUser.email ?? '',
+          createdAt: _parseDateTime(authUser.createdAt),
+        );
       }
       return null;
     } catch (e) {
+      debugPrint('❌ SupabaseService: Google Sign-In failed: $e');
       throw Exception('Google Sign-In failed: $e');
     }
   }
 
-  // TODO: Implement additional methods
-  // - getUserProfile(userId)
-  // - updateUserProfile(userId, updates)
-  // - createBlockingRule(rule)
-  // - updateBlockingRule(ruleId, updates)
-  // - deleteBlockingRule(ruleId)
-  // - trackAppUsage(appId, duration)
-  // - logBlockedAttempt(appId, timestamp)
-  // - signIn(email, password)
-  // - signInWithApple()
-  // - signInWithGoogle()
-  // - signOut()
-  // - resetPassword(email)
+  // ============================================================================
+  // USER PROFILE METHODS
+  // ============================================================================
 
-  // TODO: Implement user profile methods
-  // - getUserProfile(userId)
-  // - updateUserProfile(userData)
-  // - deleteAccount()
+  /// Get user profile by ID
+  Future<Map<String, dynamic>?> getUserProfile(String userId) async {
+    try {
+      debugPrint('📋 SupabaseService: Fetching profile for user $userId');
+      final response = await _client
+          .from('profiles')
+          .select()
+          .eq('id', userId)
+          .maybeSingle();
+      
+      if (response != null) {
+        debugPrint('✅ SupabaseService: Profile found');
+        return response;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('❌ SupabaseService: Get profile failed: $e');
+      throw Exception('Failed to get profile: $e');
+    }
+  }
 
-  // TODO: Implement blocking rules methods
-  // - createBlockingRule(rule)
-  // - getBlockingRules(userId)
-  // - updateBlockingRule(ruleId, updates)
-  // - deleteBlockingRule(ruleId)
+  /// Update user profile
+  Future<void> updateUserProfile({
+    required String userId,
+    required String fullName,
+    String? avatarUrl,
+  }) async {
+    try {
+      debugPrint('✏️  SupabaseService: Updating profile for user $userId');
+      await _client.from('profiles').update({
+        'full_name': fullName,
+        if (avatarUrl != null) 'avatar_url': avatarUrl,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', userId);
+      
+      debugPrint('✅ SupabaseService: Profile updated successfully');
+    } catch (e) {
+      debugPrint('❌ SupabaseService: Update profile failed: $e');
+      throw Exception('Failed to update profile: $e');
+    }
+  }
 
-  // TODO: Implement analytics methods
-  // - logAppUsage(appName, duration)
-  // - logBlockedAttempt(appName, ruleName)
-  // - getUserAnalytics(userId, period)
+  // ============================================================================
+  // BLOCKING RULES METHODS
+  // ============================================================================
 
-  // TODO: Implement database schema interaction
-  // Tables to set up in Supabase:
-  // - users: id, email, created_at, updated_at
-  // - profiles: id, user_id, full_name, avatar_url
-  // - blocking_rules: id, user_id, app_name/url, schedule, created_at
-  // - app_usage: id, user_id, app_name, duration, date
-  // - blocked_attempts: id, user_id, rule_id, blocked_at
+  /// Create a new blocking rule
+  Future<BlockingRule> createBlockingRule({
+    required String appName,
+    String? appBundleId,
+    String? schedule,
+  }) async {
+    try {
+      final userId = _client.auth.currentUser?.id;
+      if (userId == null) throw Exception('User not authenticated');
+
+      debugPrint('➕ SupabaseService: Creating blocking rule for $appName');
+      final response = await _client.from('blocking_rules').insert({
+        'user_id': userId,
+        'app_name': appName,
+        'app_bundle_id': appBundleId,
+        'schedule': schedule,
+        'enabled': true,
+        'created_at': DateTime.now().toIso8601String(),
+      }).select().single();
+
+      final rule = BlockingRule.fromJson(response);
+      debugPrint('✅ SupabaseService: Blocking rule created: ${rule.id}');
+      return rule;
+    } catch (e) {
+      debugPrint('❌ SupabaseService: Create blocking rule failed: $e');
+      throw Exception('Failed to create blocking rule: $e');
+    }
+  }
+
+  /// Get all blocking rules for the current user
+  Future<List<BlockingRule>> getBlockingRules() async {
+    try {
+      final userId = _client.auth.currentUser?.id;
+      if (userId == null) throw Exception('User not authenticated');
+
+      debugPrint('📋 SupabaseService: Fetching blocking rules for user $userId');
+      final response = await _client
+          .from('blocking_rules')
+          .select()
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
+
+      final rules = (response as List<dynamic>)
+          .map((r) => BlockingRule.fromJson(r as Map<String, dynamic>))
+          .toList();
+      
+      debugPrint('✅ SupabaseService: Found ${rules.length} blocking rules');
+      return rules;
+    } catch (e) {
+      debugPrint('❌ SupabaseService: Get blocking rules failed: $e');
+      throw Exception('Failed to get blocking rules: $e');
+    }
+  }
+
+  /// Update a blocking rule
+  Future<BlockingRule> updateBlockingRule({
+    required String ruleId,
+    String? appName,
+    String? schedule,
+    bool? enabled,
+  }) async {
+    try {
+      debugPrint('✏️  SupabaseService: Updating blocking rule $ruleId');
+      final updates = <String, dynamic>{
+        if (appName != null) 'app_name': appName,
+        if (schedule != null) 'schedule': schedule,
+        if (enabled != null) 'enabled': enabled,
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+
+      final response = await _client
+          .from('blocking_rules')
+          .update(updates)
+          .eq('id', ruleId)
+          .select()
+          .single();
+
+      final rule = BlockingRule.fromJson(response);
+      debugPrint('✅ SupabaseService: Blocking rule updated');
+      return rule;
+    } catch (e) {
+      debugPrint('❌ SupabaseService: Update blocking rule failed: $e');
+      throw Exception('Failed to update blocking rule: $e');
+    }
+  }
+
+  /// Delete a blocking rule
+  Future<void> deleteBlockingRule(String ruleId) async {
+    try {
+      debugPrint('🗑️  SupabaseService: Deleting blocking rule $ruleId');
+      await _client.from('blocking_rules').delete().eq('id', ruleId);
+      debugPrint('✅ SupabaseService: Blocking rule deleted');
+    } catch (e) {
+      debugPrint('❌ SupabaseService: Delete blocking rule failed: $e');
+      throw Exception('Failed to delete blocking rule: $e');
+    }
+  }
+
+  /// Toggle a blocking rule enabled/disabled
+  Future<BlockingRule> toggleBlockingRule(String ruleId, bool enabled) async {
+    try {
+      debugPrint('🔄 SupabaseService: Toggling blocking rule $ruleId to $enabled');
+      final response = await _client
+          .from('blocking_rules')
+          .update({
+            'enabled': enabled,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', ruleId)
+          .select()
+          .single();
+
+      final rule = BlockingRule.fromJson(response);
+      debugPrint('✅ SupabaseService: Blocking rule toggled');
+      return rule;
+    } catch (e) {
+      debugPrint('❌ SupabaseService: Toggle blocking rule failed: $e');
+      throw Exception('Failed to toggle blocking rule: $e');
+    }
+  }
+
+  // ============================================================================
+  // ANALYTICS METHODS
+  // ============================================================================
+
+  /// Log app usage
+  Future<void> logAppUsage({
+    required String appName,
+    required Duration duration,
+    DateTime? date,
+  }) async {
+    try {
+      final userId = _client.auth.currentUser?.id;
+      if (userId == null) throw Exception('User not authenticated');
+
+      final usageDate = date ?? DateTime.now();
+      final dateKey = usageDate.toIso8601String().split('T').first;
+
+      debugPrint('📊 SupabaseService: Logging usage for $appName (${duration.inMinutes}m)');
+
+      // Check if a record already exists for this app/date
+      final existing = await _client
+          .from('app_usage')
+          .select('duration_seconds')
+          .eq('user_id', userId)
+          .eq('app_name', appName)
+          .eq('date', dateKey)
+          .maybeSingle();
+
+      if (existing != null) {
+        // Update existing record
+        final currentSeconds = existing['duration_seconds'] as int? ?? 0;
+        await _client
+            .from('app_usage')
+            .update({
+              'duration_seconds': currentSeconds + duration.inSeconds,
+              'updated_at': DateTime.now().toIso8601String(),
+            })
+            .eq('user_id', userId)
+            .eq('app_name', appName)
+            .eq('date', dateKey);
+      } else {
+        // Insert new record
+        await _client.from('app_usage').insert({
+          'user_id': userId,
+          'app_name': appName,
+          'duration_seconds': duration.inSeconds,
+          'date': dateKey,
+          'created_at': DateTime.now().toIso8601String(),
+        });
+      }
+
+      debugPrint('✅ SupabaseService: App usage logged');
+    } catch (e) {
+      debugPrint('❌ SupabaseService: Log app usage failed: $e');
+      // Don't throw for analytics - app should continue if logging fails
+    }
+  }
+
+  /// Log a blocked attempt
+  Future<void> logBlockedAttempt({
+    required String ruleId,
+    required String appName,
+  }) async {
+    try {
+      final userId = _client.auth.currentUser?.id;
+      if (userId == null) throw Exception('User not authenticated');
+
+      debugPrint('🚫 SupabaseService: Logging blocked attempt for $appName');
+      await _client.from('blocked_attempts').insert({
+        'user_id': userId,
+        'rule_id': ruleId,
+        'app_name': appName,
+        'blocked_at': DateTime.now().toIso8601String(),
+      });
+
+      debugPrint('✅ SupabaseService: Blocked attempt logged');
+    } catch (e) {
+      debugPrint('❌ SupabaseService: Log blocked attempt failed: $e');
+      // Don't throw for analytics - app should continue if logging fails
+    }
+  }
+
+  /// Get user analytics for a time period
+  Future<Map<String, dynamic>> getUserAnalytics({
+    required String userId,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    try {
+      debugPrint('📈 SupabaseService: Fetching analytics for $userId');
+      
+      // Get total app usage
+      final usageData = await _client
+          .from('app_usage')
+          .select()
+          .eq('user_id', userId)
+          .gte('date', startDate.toIso8601String().split('T').first)
+          .lte('date', endDate.toIso8601String().split('T').first);
+
+      // Get blocked attempts
+      final blockedData = await _client
+          .from('blocked_attempts')
+          .select()
+          .eq('user_id', userId)
+          .gte('blocked_at', startDate.toIso8601String())
+          .lte('blocked_at', endDate.toIso8601String());
+
+      debugPrint('✅ SupabaseService: Analytics fetched');
+      return {
+        'usage': usageData,
+        'blocked_attempts': blockedData,
+      };
+    } catch (e) {
+      debugPrint('❌ SupabaseService: Get analytics failed: $e');
+      throw Exception('Failed to get analytics: $e');
+    }
+  }
 }

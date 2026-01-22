@@ -2,6 +2,7 @@
 /// 
 /// Manages light/dark mode theme switching for the app.
 /// Persists theme preference using shared_preferences.
+library;
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';

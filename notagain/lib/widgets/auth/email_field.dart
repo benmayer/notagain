@@ -1,6 +1,7 @@
 /// Email Input Field Widget
 /// 
 /// Reusable email input with built-in validation
+library;
 
 import 'package:flutter/material.dart';
 

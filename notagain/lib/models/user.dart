@@ -1,6 +1,7 @@
 /// User model representing an authenticated user
 /// 
 /// This model holds the user's profile information and authentication state.
+library;
 
 class User {
   final String id;

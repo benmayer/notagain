@@ -1,6 +1,7 @@
 /// Onboarding Screen
 /// 
 /// Initial setup flow for new users
+library;
 
 import 'package:flutter/material.dart';
 

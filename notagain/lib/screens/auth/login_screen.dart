@@ -2,6 +2,7 @@
 /// 
 /// Handles user authentication with email and password
 /// Includes options for social authentication (Apple, Google)
+library;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -146,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   Expanded(
                     child: Divider(
-                      color: Colors.grey.withOpacity(0.3),
+                      color: Colors.grey.withValues(alpha: 0.3),
                     ),
                   ),
                   Padding(
@@ -160,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   Expanded(
                     child: Divider(
-                      color: Colors.grey.withOpacity(0.3),
+                      color: Colors.grey.withValues(alpha: 0.3),
                     ),
                   ),
                 ],
