@@ -97,7 +97,7 @@ class SettingsScreen extends StatelessWidget {
                             FTile(
                               prefix: const Icon(FIcons.smartphone),
                               title: const Text('Device Settings'),
-                              suffix: const Icon(FIcons.chevronRight),
+                              suffix: const Icon(FIcons.externalLink),
                               onPress: () => context.push('/settings/device-settings'),
                             ),
                           ],
