@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../core/theme/app_colors.dart';
 import '../../providers/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -53,66 +52,26 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return FScaffold(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+      header: FHeader.nested(
+        title: const Text('Sign In'),
+        prefixes: [
+          FHeaderAction.back(onPress: () => context.go('/')),
+        ],
+      ),
+      child: SafeArea(
         child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 32),
-              // Logo / Title
-              Center(
-                child: Column(
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Center(
-                        child: Text(
-                          '🚫',
-                          style: Theme.of(context).textTheme.headlineLarge,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'NotAgain',
-                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Screen Time Control',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 48),
-
-              // Sign In Form
-              Text(
-                'Sign In',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
+          children: [
+            SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
                     // Email Field
                     FTextFormField.email(
                       control: FTextFieldControl.managed(controller: _emailController),
+                      label: const Text('Email'),
                       hint: 'john@example.com',
                       validator: (value) {
                         if (value?.isEmpty ?? true) {
@@ -130,6 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Password Field
                     FTextFormField.password(
                       control: FTextFieldControl.managed(controller: _passwordController),
+                      label: const Text('Password'),
                       hint: 'Enter your password',
                       validator: (value) {
                         if (value?.isEmpty ?? true) {
@@ -142,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
 
                     // Sign In Button
                     Consumer<AuthProvider>(
@@ -155,85 +115,88 @@ class _LoginScreenState extends State<LoginScreen> {
                         );
                       },
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-              // Divider
-              Row(
-                children: [
-                  Expanded(
-                    child: Divider(
-                      color: Colors.grey.withValues(alpha: 0.3),
+                    // Divider
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Divider(
+                            color: context.theme.colors.border,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            'or',
+                            style: context.theme.typography.sm.copyWith(
+                              color: context.theme.colors.mutedForeground,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Divider(
+                            color: context.theme.colors.border,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      'or',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Divider(
-                      color: Colors.grey.withValues(alpha: 0.3),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-              // Social Auth Buttons
-              Consumer<AuthProvider>(
-                builder: (context, authProvider, _) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      FButton(
-                        onPress: authProvider.isLoading ? null : () => authProvider.signInWithApple(),
-                        prefix: authProvider.isLoading ? const FCircularProgress() : const Icon(FIcons.apple),
-                        style: FButtonStyle.outline(),
-                        child: const Text('Sign in with Apple'),
-                      ),
-                      const SizedBox(height: 12),
-                      FButton(
-                        onPress: authProvider.isLoading ? null : () => authProvider.signInWithGoogle(),
-                        prefix: authProvider.isLoading ? const FCircularProgress() : const Icon(FIcons.mail),
-                        style: FButtonStyle.outline(),
-                        child: const Text('Sign in with Google'),
-                      ),
+                    // Social Auth Buttons
+                    Consumer<AuthProvider>(
+                      builder: (context, authProvider, _) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            FButton(
+                              onPress: authProvider.isLoading ? null : () => authProvider.signInWithApple(),
+                              prefix: authProvider.isLoading ? const FCircularProgress() : const Icon(FIcons.apple),
+                              style: FButtonStyle.outline(),
+                              child: const Text('Continue with Apple'),
+                            ),
+                            const SizedBox(height: 12),
+                            FButton(
+                              onPress: authProvider.isLoading ? null : () => authProvider.signInWithGoogle(),
+                              prefix: authProvider.isLoading ? const FCircularProgress() : const Icon(FIcons.mail),
+                              style: FButtonStyle.outline(),
+                              child: const Text('Continue with Google'),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                     ],
-                  );
-                },
-              ),
-              const SizedBox(height: 32),
-
-              // Sign Up Link
-              Row(
+                  ),
+                ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     "Don't have an account? ",
-                    style: Theme.of(context).textTheme.bodyMedium,
+                    style: context.theme.typography.sm.copyWith(
+                      color: context.theme.colors.foreground,
+                    ),
                   ),
                   GestureDetector(
                     onTap: () => context.go('/signup'),
                     child: Text(
                       'Sign Up',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.primary,
+                      style: context.theme.typography.sm.copyWith(
+                        color: context.theme.colors.primary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      );
+      ),
+    );
   }
 }

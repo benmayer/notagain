@@ -35,9 +35,22 @@ class AuthProvider extends ChangeNotifier {
 ```
 
 ### Navigation & Routing
-**Pattern**: Auth-gated routing via GoRouter redirect. Unauthenticated users redirected to `/login`; authenticated users auto-redirected from auth screens to `/home`.
+**Pattern**: Auth-gated routing via GoRouter redirect. Welcome screen (`/`) is the entry point for unauthenticated users; authenticated users auto-redirected from auth screens to `/home`.
+
+**Auth Flow**:
+```
+Welcome (/) 
+  ├─ "Get Started" → Sign Up (/signup)
+  └─ "Sign In" → Login (/login)
+     └─ Back button → Welcome (/)
+```
+
+**Key Points**:
+- Initial route: `/` (Welcome screen, not `/home`)
 - Routes defined in `lib/routing/app_router.dart`
-- Bottom nav implemented in `lib/screens/home/home_screen.dart` with multiple placeholder screens
+- Bottom nav (Home, Start, Profile) implemented in `lib/screens/home/home_screen.dart`
+- Auth screens use `FHeader.nested()` with back button for navigation consistency
+- Non-root screens (Settings and sub-screens) have back navigation via `FHeaderAction.back()`
 
 ### Error & Loading States
 **Pattern**: Providers expose `isLoading`, `error` fields; screens display loading spinners via `authProvider.isLoading`, errors via SnackBar:

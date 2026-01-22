@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../core/theme/app_colors.dart';
 import '../../providers/auth_provider.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -64,60 +63,27 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return FScaffold(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+      header: FHeader.nested(
+        title: const Text('Create Account'),
+        prefixes: [
+          FHeaderAction.back(onPress: () => context.go('/')),
+        ],
+      ),
+      child: SafeArea(
         child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 16),
-
-              // Back Button & Title
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => context.go('/login'),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(Icons.arrow_back),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        'Create Account',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Join NotAgain to manage your screen time',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
-
-              // Sign Up Form
-              Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
                     // Full Name Field
                     FTextFormField(
                       control: FTextFieldControl.managed(controller: _nameController),
-                      hint: 'Full Name',
+                      label: const Text('Full Name'),
+                      hint: 'John Doe',
                       validator: (value) {
                         if (value?.isEmpty ?? true) {
                           return 'Name is required';
@@ -131,6 +97,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     // Email Field
                     FTextFormField.email(
                       control: FTextFieldControl.managed(controller: _emailController),
+                      label: const Text('Email'),
                       hint: 'john@example.com',
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -149,7 +116,8 @@ class _SignupScreenState extends State<SignupScreen> {
                     // Password Field
                     FTextFormField.password(
                       control: FTextFieldControl.managed(controller: _passwordController),
-                      hint: 'Password',
+                      label: const Text('Password'),
+                      hint: 'Enter your password',
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Password is required';
@@ -166,7 +134,8 @@ class _SignupScreenState extends State<SignupScreen> {
                     // Confirm Password Field
                     FTextFormField.password(
                       control: FTextFieldControl.managed(controller: _confirmPasswordController),
-                      hint: 'Confirm Password',
+                      label: const Text('Confirm Password'),
+                      hint: 'Re-enter your password',
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please confirm your password';
@@ -186,8 +155,11 @@ class _SignupScreenState extends State<SignupScreen> {
                       onChange: (value) {
                         setState(() => _agreedToTerms = value);
                       },
-                      label: const Text(
+                      label: Text(
                         'I agree to the Terms of Service and Privacy Policy',
+                        style: context.theme.typography.sm.copyWith(
+                          color: context.theme.colors.foreground,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -209,34 +181,88 @@ class _SignupScreenState extends State<SignupScreen> {
                         );
                       },
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 32),
+                    const SizedBox(height: 24),
 
-              // Sign In Link
-              Row(
+                    // Divider
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Divider(
+                            color: context.theme.colors.border,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            'or',
+                            style: context.theme.typography.sm.copyWith(
+                              color: context.theme.colors.mutedForeground,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Divider(
+                            color: context.theme.colors.border,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Social Auth Buttons
+                    Consumer<AuthProvider>(
+                      builder: (context, authProvider, _) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            FButton(
+                              onPress: authProvider.isLoading ? null : () => authProvider.signInWithApple(),
+                              prefix: authProvider.isLoading ? const FCircularProgress() : const Icon(FIcons.apple),
+                              style: FButtonStyle.outline(),
+                              child: const Text('Continue with Apple'),
+                            ),
+                            const SizedBox(height: 12),
+                            FButton(
+                              onPress: authProvider.isLoading ? null : () => authProvider.signInWithGoogle(),
+                              prefix: authProvider.isLoading ? const FCircularProgress() : const Icon(FIcons.mail),
+                              style: FButtonStyle.outline(),
+                              child: const Text('Continue with Google'),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    ],
+                  ),
+                ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     'Already have an account? ',
-                    style: Theme.of(context).textTheme.bodyMedium,
+                    style: context.theme.typography.sm.copyWith(
+                      color: context.theme.colors.foreground,
+                    ),
                   ),
                   GestureDetector(
                     onTap: () => context.go('/login'),
                     child: Text(
                       'Sign In',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.primary,
+                      style: context.theme.typography.sm.copyWith(
+                        color: context.theme.colors.primary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      );
+      ),
+    );
   }
 }

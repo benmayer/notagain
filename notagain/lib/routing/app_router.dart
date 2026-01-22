@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../screens/auth/welcome_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/signup_screen.dart';
 import '../screens/home/home_screen.dart';
@@ -17,24 +18,36 @@ import '../screens/settings/settings_stubs.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: '/home',
+    initialLocation: '/',
     redirect: (context, state) {
       final authProvider = context.read<AuthProvider>();
       final isAuthenticated = authProvider.isAuthenticated;
 
-      // If not authenticated, redirect to login
-      if (!isAuthenticated && state.matchedLocation != '/login' && state.matchedLocation != '/signup') {
-        return '/login';
+      // If not authenticated, allow access to welcome, login, signup screens
+      if (!isAuthenticated && (state.matchedLocation == '/' || state.matchedLocation == '/login' || state.matchedLocation == '/signup')) {
+        return null;
+      }
+
+      // If not authenticated and trying to access protected routes, redirect to welcome
+      if (!isAuthenticated) {
+        return '/';
       }
 
       // If authenticated and trying to access auth routes, redirect to home
-      if (isAuthenticated && (state.matchedLocation == '/login' || state.matchedLocation == '/signup')) {
+      if (isAuthenticated && (state.matchedLocation == '/' || state.matchedLocation == '/login' || state.matchedLocation == '/signup')) {
         return '/home';
       }
 
       return null;
     },
     routes: <RouteBase>[
+      GoRoute(
+        path: '/',
+        name: 'welcome',
+        builder: (BuildContext context, GoRouterState state) {
+          return const WelcomeScreen();
+        },
+      ),
       GoRoute(
         path: '/login',
         name: 'login',

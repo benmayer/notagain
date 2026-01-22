@@ -11,43 +11,47 @@ notagain/
 │   ├── main.dart                    # App entry point, theming, and bottom navigation
 │   ├── core/
 │   │   ├── theme/
-│   │   │   ├── app_colors.dart      # Color palette and constants
-│   │   │   ├── app_theme.dart       # Material and Forui theme configuration
-│   │   │   └── theme_provider.dart  # Theme state management (Provider)
+│   │   │   ├── app_colors.dart      # Color palette and constants (DEPRECATED - use Forui theme)
+│   │   │   ├── theme_provider.dart  # Theme state management (Provider) with FThemeData
+│   │   │   └── README.md            # Theming documentation
 │   │   ├── constants/               # App-wide constants (API keys, timeouts, etc)
 │   │   └── utils/                   # Utility functions (formatters, validators, etc)
+│   ├── routing/
+│   │   └── app_router.dart          # GoRouter config with auth-gated redirect logic
 │   ├── screens/                     # Top-level screens organized by feature
 │   │   ├── auth/
-│   │   │   ├── README.md            # Feature documentation
-│   │   │   ├── login_screen.dart
-│   │   │   └── signup_screen.dart
+│   │   │   ├── welcome_screen.dart  # Entry point - Sign In or Get Started
+│   │   │   ├── login_screen.dart    # Email/password sign in with social auth
+│   │   │   └── signup_screen.dart   # Email/password registration
 │   │   ├── onboarding/
-│   │   │   ├── README.md            # Feature documentation
-│   │   │   ├── welcome_screen.dart
-│   │   │   └── permissions_screen.dart
+│   │   │   └── onboarding_screen.dart # Post-auth permissions setup (future)
 │   │   ├── home/
-│   │   │   ├── README.md            # Feature documentation
-│   │   │   └── home_screen.dart
+│   │   │   └── home_screen.dart     # Dashboard with bottom nav (Home, Start, Profile)
 │   │   ├── start/
-│   │   │   ├── README.md            # Feature documentation
-│   │   │   ├── rules_list_screen.dart
-│   │   │   └── rule_creation_screen.dart
-│   │   └── profile/
-│   │       ├── README.md            # Feature documentation
-│   │       ├── profile_screen.dart
-│   │       ├── settings_screen.dart
-│   │       └── analytics_screen.dart
-│   ├── widgets/                     # Reusable UI components organized by feature
-│   │   ├── auth/
-│   │   │   ├── auth_form.dart
-│   │   │   └── social_auth_button.dart
-│   │   ├── home/
-│   │   │   ├── screen_time_chart.dart
-│   │   │   └── app_usage_card.dart
-│   │   ├── start/
-│   │   │   ├── rule_card.dart
-│   │   │   ├── schedule_picker.dart
-│   │   │   └── app_selector.dart
+│   │   │   └── start_screen.dart    # Blocking rules management (placeholder)
+│   │   ├── profile/
+│   │   │   └── profile_screen.dart  # User profile (placeholder)
+│   │   └── settings/
+│   │       ├── settings_screen.dart # User settings with FTileGroup sections
+│   │       └── settings_stubs.dart  # Settings sub-screens (Device, Help, FAQs, etc)
+│   ├── widgets/                     # Reusable UI components
+│   │   ├── auth/                    # Auth-specific widgets (form fields, buttons)
+│   │   ├── home/                    # Home screen widgets (navigation, stats)
+│   │   ├── profile/                 # Profile widgets
+│   │   ├── settings/                # Settings widgets
+│   │   └── start/                   # Start screen widgets
+│   ├── models/                      # Data models and DTOs
+│   │   ├── user.dart                # User model
+│   │   └── auth_response.dart       # API response models
+│   ├── providers/                   # State management (Provider pattern)
+│   │   ├── auth_provider.dart       # Authentication state
+│   │   ├── theme_provider.dart      # Light/dark mode state
+│   │   └── settings_provider.dart   # User preferences state
+│   ├── services/                    # Backend and platform services
+│   │   ├── supabase_service.dart    # Supabase integration (auth, CRUD, analytics)
+│   │   └── native_blocking_service.dart # iOS Screen Time API bridge
+│   └── main.dart                    # App bootstrap with FAnimatedTheme + FToaster
+```
 │   │   ├── profile/
 │   │   │   ├── profile_header.dart
 │   │   │   └── preference_toggle.dart
@@ -84,13 +88,31 @@ notagain/
 
 ## Key Features
 
-### 1. **Authentication** (`features/auth`)
+### 1. **Authentication** (`screens/auth/`)
+
+**Flow**:
+```
+Welcome (/) 
+  ├─ "Get Started" → Sign Up (/signup)
+  └─ "Sign In" → Login (/login)
+     └─ Back button → Welcome
+```
+
+**Screens**:
+- **WelcomeScreen**: Entry point with app logo, tagline, and two CTA buttons
+- **LoginScreen**: Email/password auth + Apple/Google Sign-In
+- **SignupScreen**: Registration with name, email, password confirmation, terms agreement
+
+**Features**:
 - Email/password registration and login
 - Social authentication (Apple Sign-In, Google Sign-In)
 - Session management with Supabase Auth
 - Secure token storage
+- FHeader.nested() for consistent navigation
+- Bottom-aligned navigation links between auth screens
+- Pure Forui theming (no Material components)
 
-**Components**: LoginScreen, SignupScreen, AuthProvider, AuthService
+**Components**: WelcomeScreen, LoginScreen, SignupScreen, AuthProvider, SupabaseService
 
 ### 2. **Onboarding** (`features/onboarding`)
 - Welcome and app introduction
@@ -134,17 +156,67 @@ notagain/
 
 **Components**: ProfileScreen, SettingsScreen, AnalyticsReportScreen, UsageChart, PreferenceToggle
 
+## Routing System (`lib/routing/app_router.dart`)
+
+**GoRouter Configuration**:
+- **Initial route**: `/` (Welcome screen for unauthenticated users)
+- **Auth-gated redirect logic**:
+  - Unauthenticated → Allow `/`, `/login`, `/signup`; redirect other routes to `/`
+  - Authenticated → Redirect auth screens to `/home`; allow all other routes
+  
+**Route Structure**:
+```
+/                          # Welcome (unauthenticated entry point)
+/login                     # Sign In screen
+/signup                    # Sign Up screen
+/home                      # Main dashboard (protected)
+├─ /start                  # Blocking rules (placeholder)
+├─ /profile                # User profile (placeholder)
+/settings                  # Settings (protected)
+├─ /settings/device-settings
+├─ /settings/help-support
+├─ /settings/faqs
+├─ /settings/feedback
+├─ /settings/terms-of-service
+└─ /settings/privacy-policy
+/onboarding               # Post-auth permissions (future)
+```
+
 ## Core Systems
 
 ### Theming System (`core/theme/`)
-- **AppColors**: Centralized color palette
-  - Primary brand color: `#1fbacb` (Teal)
-  - Light/dark mode color definitions
-  - Semantic colors (success, warning, error, info)
-- **AppTheme**: Material Design 3 and Forui theme configurations
+
+**Pure Forui Implementation**:
+- **FThemes**: Built-in Forui theme families (slate, zinc, amber, emerald, rose)
+  - Each family has `.light` and `.dark` variants
+  - Automatic light/dark mode switching
 - **ThemeProvider**: State management for light/dark mode switching
+  - Uses `FThemeData` getter to provide current theme
   - Persists user preference with SharedPreferences
-  - Notifies app of theme changes for UI updates
+  - Notifies app of theme changes via `notifyListeners()`
+- **App Root**: `FAnimatedTheme` wrapper for smooth theme transitions
+  - `FToaster` for toast notifications
+
+**Key Principles**:
+- ✅ **ONLY Forui components** - No Material components for styling
+- ✅ **Theme-aware colors**: All text/icons use `context.theme.colors`
+- ✅ **Theme-aware typography**: All text uses `context.theme.typography`
+- ✅ **Forui icons**: Use `FIcons` (not Material `Icons`)
+- ✅ **No custom theming**: Rely on built-in Forui theme system
+
+**Usage Pattern**:
+```dart
+// Colors
+Text('Hello', style: context.theme.typography.lg.copyWith(
+  color: context.theme.colors.foreground
+))
+
+// Dividers & spacing
+FDivider(color: context.theme.colors.border)
+
+// Icons
+Icon(FIcons.settings, color: context.theme.colors.mutedForeground)
+```
 
 ### State Management (Provider)
 - **ThemeProvider**: Manages light/dark mode
