@@ -1,4 +1,4 @@
-name: notagain
+name: NotAgain
 description: "A screen time control app that blocks other apps and websites to help users break unconscious usage patterns."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -79,7 +79,7 @@ flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
-  uses-material-design: true
+  uses-material-design: false
 
   # Add assets to the application
   assets:

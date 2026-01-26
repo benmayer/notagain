@@ -6,7 +6,7 @@ NotAgain has a clear, well-documented architecture, Provider-based state managem
 
 Prioritized improvements
 
-1. Remove hardcoded Supabase credentials
+1. ✅ Remove hardcoded Supabase credentials
 - Why: Keys in source are a security risk and invalidate safe release practices.
 - Actions:
   - Move `supabaseUrl`/`supabaseKey` to environment variables and load with `flutter_dotenv`.
@@ -14,7 +14,7 @@ Prioritized improvements
   - Add `.env.example` and update README with setup steps.
 - Severity: High · Effort: Small
 
-2. Implement missing `SupabaseService` methods
+2. ✅ Implement missing `SupabaseService` methods
 - Why: Core CRUD/analytics methods are incomplete, blocking rules and analytics flows.
 - Actions:
   - Complete CRUD for `blocking_rules`, `profiles`, `app_usage` in `lib/services/supabase_service.dart`.
@@ -58,20 +58,20 @@ Prioritized improvements
   - Add widget tests for `LoginScreen` and `RuleCreationScreen` and a GitHub Actions workflow to run `flutter analyze` and `flutter test`.
 - Severity: Medium · Effort: Medium
 
-8. Enforce Forui-first component usage
+8. ✅ Enforce Forui-first component usage
 - Why: Project requires Forui UI consistency and the agent guidance mandates Forui-first components.
 - Actions:
   - Audit `lib/widgets/` and refactor custom buttons/inputs to wrap Forui equivalents.
   - Add a PR checklist item to verify Forui usage and update `.github/copilot-instructions.md` (already added).
 - Severity: Medium · Effort: Medium
 
-9. Apply Forui theme at app root
+9. ✅ Apply Forui theme at app root
 - Why: `AppTheme` provides Forui themes but the app root must apply them for consistency.
 - Actions:
   - Wrap `MyApp` with Forui theme provider and apply `AppTheme.forLightTheme()` / `forDarkTheme()` in `lib/main.dart` and `lib/core/theme/app_theme.dart`.
 - Severity: Low · Effort: Small
 
-10. Rotate leaked secrets & add prevention
+10. ✅ Rotate leaked secrets & add prevention
 - Why: If keys were committed, they should be rotated and prevented from recurrence.
 - Actions:
   - Rotate Supabase keys in the dashboard, add secret-detection to CI, and document the secrets policy in README.
@@ -82,6 +82,9 @@ Prioritized improvements
 - Actions:
   - Move TODOs from `lib/services/supabase_service.dart` into tracked GitHub issues and reference issue numbers in code comments.
 - Severity: Low · Effort: Small
+
+12. Create mail Layout file, so th homepage doesn't need to import all pages: 
+
 
 PR checklist
 

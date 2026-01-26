@@ -8,10 +8,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../main_layout.dart';
 import '../screens/auth/welcome_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/signup_screen.dart';
 import '../screens/home/home_screen.dart';
+import '../screens/start/start_screen.dart';
+import '../screens/profile/profile_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/settings/settings_stubs.dart';
@@ -62,12 +65,36 @@ class AppRouter {
           return const SignupScreen();
         },
       ),
-      GoRoute(
-        path: '/home',
-        name: 'home',
-        builder: (BuildContext context, GoRouterState state) {
-          return const HomeScreen();
+      ShellRoute(
+        builder: (context, state, child) {
+          return MainLayout(
+            currentRoute: state.matchedLocation,
+            child: child,
+          );
         },
+        routes: [
+          GoRoute(
+            path: '/home',
+            name: 'home',
+            builder: (BuildContext context, GoRouterState state) {
+              return const HomeScreen();
+            },
+          ),
+          GoRoute(
+            path: '/start',
+            name: 'start',
+            builder: (BuildContext context, GoRouterState state) {
+              return const StartScreen();
+            },
+          ),
+          GoRoute(
+            path: '/profile',
+            name: 'profile',
+            builder: (BuildContext context, GoRouterState state) {
+              return const ProfileScreen();
+            },
+          ),
+        ],
       ),
       GoRoute(
         path: '/onboarding',
