@@ -13,7 +13,7 @@ class StartScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Text(
             'Start Screen',
@@ -22,7 +22,6 @@ class StartScreen extends StatelessWidget {
               color: context.theme.colors.foreground,
             ),
           ),
-          const SizedBox(height: 16),
           Text(
             'Coming soon...',
             style: context.theme.typography.sm.copyWith(

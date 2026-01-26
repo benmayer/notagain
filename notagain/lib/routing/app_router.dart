@@ -76,22 +76,22 @@ class AppRouter {
           GoRoute(
             path: '/home',
             name: 'home',
-            builder: (BuildContext context, GoRouterState state) {
-              return const HomeScreen();
+            pageBuilder: (BuildContext context, GoRouterState state) {
+              return const NoTransitionPage(child: HomeScreen());
             },
           ),
           GoRoute(
             path: '/start',
             name: 'start',
-            builder: (BuildContext context, GoRouterState state) {
-              return const StartScreen();
+            pageBuilder: (BuildContext context, GoRouterState state) {
+              return const NoTransitionPage(child: StartScreen());
             },
           ),
           GoRoute(
             path: '/profile',
             name: 'profile',
-            builder: (BuildContext context, GoRouterState state) {
-              return const ProfileScreen();
+            pageBuilder: (BuildContext context, GoRouterState state) {
+              return const NoTransitionPage(child: ProfileScreen());
             },
           ),
         ],

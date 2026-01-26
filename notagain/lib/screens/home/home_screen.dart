@@ -11,14 +11,12 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 16),
           Center(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text(
                   'Home Screen',
@@ -27,7 +25,6 @@ class HomeScreen extends StatelessWidget {
                     color: context.theme.colors.foreground,
                   ),
                 ),
-                const SizedBox(height: 16),
                 Text(
                   'Coming soon...',
                   style: context.theme.typography.sm.copyWith(
