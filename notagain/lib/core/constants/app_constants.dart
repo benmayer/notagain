@@ -36,17 +36,17 @@ class AppConstants {
   /// Standard horizontal padding for screens
   static const double standardPadding = 16.0;
 
+  /// Extra small gap for subtle spacing
+  static const double extraSmallGap = 8.0;
+
+  /// Small gap for minor spacing
+  static const double smallGap = 12.0;
+
   /// Standard gap between vertical elements
   static const double standardGap = 16.0;
 
   /// Large gap between sections (e.g., buttons, form sections)
   static const double largeGap = 24.0;
-
-  /// Small gap for minor spacing
-  static const double smallGap = 12.0;
-
-  /// Extra small gap for subtle spacing
-  static const double extraSmallGap = 8.0;
 
   /// Minimum width for buttons (mainly used in forms)
   static const double minButtonWidth = 300.0;
@@ -55,7 +55,7 @@ class AppConstants {
   static const double maxFormWidth = 500.0;
 
   /// Minimum width for toast notifications
-  static const double toastMinWidth = 200.0;
+  static const double toastMinWidth = 400.0;
 
   /// Standard border radius for cards and inputs
   static const double borderRadius = 8.0;
@@ -84,12 +84,6 @@ class AppConstants {
 
   /// Maximum user name length
   static const int maxNameLength = 100;
-
-  /// Minimum app name length for blocking rules
-  static const int minAppNameLength = 1;
-
-  /// Maximum app name length for blocking rules
-  static const int maxAppNameLength = 150;
 
   // ============================================================================
   // API & NETWORK SETTINGS
