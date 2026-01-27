@@ -197,7 +197,8 @@ class SupabaseService {
   }
 
   /// Sign in with Apple
-  Future<app_user.User?> signInWithApple() async {
+  /// Returns Result<User> with structured error handling
+  Future<Result<app_user.User>> signInWithApple() async {
     try {
       debugPrint('🔐 SupabaseService: Starting Apple Sign-In');
       await _client.auth.signInWithOAuth(
@@ -207,21 +208,45 @@ class SupabaseService {
       final authUser = _client.auth.currentUser;
       if (authUser != null) {
         debugPrint('✅ SupabaseService: Apple Sign-In successful for ${authUser.email}');
-        return app_user.User(
-          id: authUser.id,
+        // Create user profile in database if it doesn't exist
+        await _createUserProfile(
+          userId: authUser.id,
           email: authUser.email ?? '',
-          createdAt: _parseDateTime(authUser.createdAt),
+          fullName: authUser.userMetadata?['full_name'] as String?,
+        );
+        
+        return Result.success(
+          app_user.User(
+            id: authUser.id,
+            email: authUser.email ?? '',
+            fullName: authUser.userMetadata?['full_name'] as String?,
+            createdAt: _parseDateTime(authUser.createdAt),
+          ),
         );
       }
-      return null;
+      debugPrint('❌ SupabaseService: Apple Sign-In returned null user');
+      return Result.failure(
+        AppError(message: 'Apple Sign-In failed: No user returned'),
+      );
+    } on AuthException catch (e) {
+      debugPrint('❌ SupabaseService: Apple Sign-In auth exception: ${e.message}');
+      return Result.failure(
+        AppError(
+          message: e.message,
+          exception: e,
+          code: e.statusCode != null ? int.tryParse(e.statusCode!) : null,
+          errorCode: e.statusCode,
+        ),
+      );
     } catch (e) {
-      debugPrint('❌ SupabaseService: Apple Sign-In failed: $e');
-      throw Exception('Apple Sign-In failed: $e');
+      debugPrint('❌ SupabaseService: Apple Sign-In exception: $e');
+      return Result.failure(AppError.fromException(e, message: 'Apple Sign-In failed'));
     }
   }
 
   /// Sign in with Google
-  Future<app_user.User?> signInWithGoogle() async {
+  /// Returns Result<User> with structured error handling
+  Future<Result<app_user.User>> signInWithGoogle() async {
     try {
       debugPrint('🔐 SupabaseService: Starting Google Sign-In');
       await _client.auth.signInWithOAuth(
@@ -231,16 +256,39 @@ class SupabaseService {
       final authUser = _client.auth.currentUser;
       if (authUser != null) {
         debugPrint('✅ SupabaseService: Google Sign-In successful for ${authUser.email}');
-        return app_user.User(
-          id: authUser.id,
+        // Create user profile in database if it doesn't exist
+        await _createUserProfile(
+          userId: authUser.id,
           email: authUser.email ?? '',
-          createdAt: _parseDateTime(authUser.createdAt),
+          fullName: authUser.userMetadata?['full_name'] as String?,
+        );
+        
+        return Result.success(
+          app_user.User(
+            id: authUser.id,
+            email: authUser.email ?? '',
+            fullName: authUser.userMetadata?['full_name'] as String?,
+            createdAt: _parseDateTime(authUser.createdAt),
+          ),
         );
       }
-      return null;
+      debugPrint('❌ SupabaseService: Google Sign-In returned null user');
+      return Result.failure(
+        AppError(message: 'Google Sign-In failed: No user returned'),
+      );
+    } on AuthException catch (e) {
+      debugPrint('❌ SupabaseService: Google Sign-In auth exception: ${e.message}');
+      return Result.failure(
+        AppError(
+          message: e.message,
+          exception: e,
+          code: e.statusCode != null ? int.tryParse(e.statusCode!) : null,
+          errorCode: e.statusCode,
+        ),
+      );
     } catch (e) {
-      debugPrint('❌ SupabaseService: Google Sign-In failed: $e');
-      throw Exception('Google Sign-In failed: $e');
+      debugPrint('❌ SupabaseService: Google Sign-In exception: $e');
+      return Result.failure(AppError.fromException(e, message: 'Google Sign-In failed'));
     }
   }
 

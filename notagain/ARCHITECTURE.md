@@ -8,7 +8,8 @@ Notagain is a screen time control app that helps users break unconscious usage p
 ```
 notagain/
 ├── lib/
-│   ├── main.dart                    # App entry point, theming, and bottom navigation
+│   ├── main.dart                    # App entry point, theming, and FAnimatedTheme 
+│   ├── main_layout.dart             # Shared layout with Scaffold, header, bottom nav
 │   ├── core/
 │   │   ├── theme/
 │   │   │   ├── app_colors.dart      # Color palette and constants (DEPRECATED - use Forui theme)
@@ -17,7 +18,7 @@ notagain/
 │   │   ├── constants/               # App-wide constants (API keys, timeouts, etc)
 │   │   └── utils/                   # Utility functions (formatters, validators, etc)
 │   ├── routing/
-│   │   └── app_router.dart          # GoRouter config with auth-gated redirect logic
+│   │   └── app_router.dart          # GoRouter config with ShellRoute for main nav, auth-gated redirect logic
 │   ├── screens/                     # Top-level screens organized by feature
 │   │   ├── auth/
 │   │   │   ├── welcome_screen.dart  # Entry point - Sign In or Get Started
@@ -26,9 +27,9 @@ notagain/
 │   │   ├── onboarding/
 │   │   │   └── onboarding_screen.dart # Post-auth permissions setup (future)
 │   │   ├── home/
-│   │   │   └── home_screen.dart     # Dashboard with bottom nav (Home, Start, Profile)
+│   │   │   └── home_screen.dart     # Dashboard content, Entry for the user journey
 │   │   ├── start/
-│   │   │   └── start_screen.dart    # Blocking rules management (placeholder)
+│   │   │   └── start_screen.dart    # Blocking rules management content only
 │   │   ├── profile/
 │   │   │   └── profile_screen.dart  # User profile (placeholder)
 │   │   └── settings/
@@ -41,14 +42,15 @@ notagain/
 │   │   ├── settings/                # Settings widgets
 │   │   └── start/                   # Start screen widgets
 │   ├── models/                      # Data models and DTOs
-│   │   ├── user.dart                # User model
-│   │   └── auth_response.dart       # API response models
+│   │   ├── user.dart                # User model and AuthResponse
+│   │   ├── blocking_rule.dart       # Blocking rule model
+│   │   └── result.dart              # Generic Result<T> and AppError types for standardized responses
 │   ├── providers/                   # State management (Provider pattern)
-│   │   ├── auth_provider.dart       # Authentication state
+│   │   ├── auth_provider.dart       # Authentication state, returns Result<User>
 │   │   ├── theme_provider.dart      # Light/dark mode state
 │   │   └── settings_provider.dart   # User preferences state
 │   ├── services/                    # Backend and platform services
-│   │   ├── supabase_service.dart    # Supabase integration (auth, CRUD, analytics)
+│   │   ├── supabase_service.dart    # Supabase integration (auth, CRUD, analytics), returns Result<T>
 │   │   └── native_blocking_service.dart # iOS Screen Time API bridge
 │   └── main.dart                    # App bootstrap with FAnimatedTheme + FToaster
 ```
@@ -100,8 +102,8 @@ Welcome (/)
 
 **Screens**:
 - **WelcomeScreen**: Entry point with app logo, tagline, and two CTA buttons
-- **LoginScreen**: Email/password auth + Apple/Google Sign-In
-- **SignupScreen**: Registration with name, email, password confirmation, terms agreement
+- **LoginScreen**: Email/password auth + Apple/Google Sign-In with Forui toasts
+- **SignupScreen**: Registration with name, email, password confirmation, terms agreement, Forui toasts
 
 **Features**:
 - Email/password registration and login
@@ -111,6 +113,10 @@ Welcome (/)
 - FHeader.nested() for consistent navigation
 - Bottom-aligned navigation links between auth screens
 - Pure Forui theming (no Material components)
+- **Error Handling**: Uses standardized `Result<User>` type with Forui toast notifications
+  - Toasts positioned at bottom center with minimum width (300px)
+  - Icons: `FIcons.triangleAlert` with theme-aware colors
+  - Auto-dismiss after 4 seconds
 
 **Components**: WelcomeScreen, LoginScreen, SignupScreen, AuthProvider, SupabaseService
 
@@ -163,28 +169,36 @@ Welcome (/)
 - **Auth-gated redirect logic**:
   - Unauthenticated → Allow `/`, `/login`, `/signup`; redirect other routes to `/`
   - Authenticated → Redirect auth screens to `/home`; allow all other routes
-  
+- **ShellRoute for Main Navigation**: `/home`, `/start`, `/profile` wrapped in `ShellRoute` with `MainLayout`
+  - Uses `NoTransitionPage` for instant tab switching (no page transition animations)
+  - Maintains tab state when switching between Home, Start, Profile
+  - Deep linking supported: `/home`, `/start`, `/profile` are separate routes
+
 **Route Structure**:
 ```
 /                          # Welcome (unauthenticated entry point)
 /login                     # Sign In screen
 /signup                    # Sign Up screen
-/home                      # Main dashboard (protected)
-├─ /start                  # Blocking rules (placeholder)
-├─ /profile                # User profile (placeholder)
-/settings                  # Settings (protected)
+
+ShellRoute (MainLayout)    # Main app scaffold with header + bottom nav
+├─ /home                   # Home dashboard (NoTransitionPage)
+├─ /start                  # Blocking rules (NoTransitionPage)
+└─ /profile                # User profile (NoTransitionPage)
+
+/settings                  # Settings (protected, outside main nav)
 ├─ /settings/device-settings
 ├─ /settings/help-support
 ├─ /settings/faqs
 ├─ /settings/feedback
 ├─ /settings/terms-of-service
 └─ /settings/privacy-policy
+
 /onboarding               # Post-auth permissions (future)
 ```
 
 ## Core Systems
 
-### Theming System (`core/theme/`)
+### Theming System (`core/theme/`) & Layout Separation
 
 **Pure Forui Implementation**:
 - **FThemes**: Built-in Forui theme families (slate, zinc, amber, emerald, rose)
@@ -197,12 +211,21 @@ Welcome (/)
 - **App Root**: `FAnimatedTheme` wrapper for smooth theme transitions
   - `FToaster` for toast notifications
 
+**Layout Separation** (`lib/main_layout.dart`):
+- **MainLayout**: Extracted Scaffold, FHeader, and FBottomNavigationBar logic
+- Located in `lib/` root directory (not nested in screens)
+- Used by ShellRoute to wrap `/home`, `/start`, `/profile` routes
+- Manages tab state and navigation between main app sections
+- Single header builder that adapts based on current route
+- Eliminates duplication and improves maintainability
+
 **Key Principles**:
 - ✅ **ONLY Forui components** - No Material components for styling
 - ✅ **Theme-aware colors**: All text/icons use `context.theme.colors`
 - ✅ **Theme-aware typography**: All text uses `context.theme.typography`
 - ✅ **Forui icons**: Use `FIcons` (not Material `Icons`)
 - ✅ **No custom theming**: Rely on built-in Forui theme system
+- ✅ **Clean separation**: Screens contain only content, layout is centralized
 
 **Usage Pattern**:
 ```dart
@@ -307,7 +330,35 @@ iOS-specific blocking functionality using platform channels:
 5. **Type Safety**: Strong typing for models and DTO objects
 6. **Documentation**: Every file includes inline documentation
 
-## Deployment
+## Error Handling & Result Types (`lib/models/result.dart`)
+
+**Standardized Result Pattern**:
+- **Result<T>**: Generic wrapper for async operation outcomes
+  - `isSuccess` getter: true when error is null and data is not null
+  - `isFailure` getter: opposite of isSuccess
+  - Factory constructors: `Result.success(data)` and `Result.failure(error)`
+
+**AppError Type**:
+- **message**: User-friendly error description
+- **exception**: Original exception object (for debugging)
+- **code**: HTTP status code (if applicable)
+- **errorCode**: Supabase error code string
+- Factory: `AppError.fromException()` for converting exceptions to AppError
+
+**Service Integration**:
+- `SupabaseService` methods return `Result<T>` instead of raw values
+- Proper error parsing from Supabase `AuthException`
+- All auth errors wrapped with structured context (message, code, etc)
+
+**Provider Integration**:
+- Providers consume `Result<T>` from services
+- Update `isLoading` and `error` state fields
+- Expose results to UI for error handling
+
+**UI Presentation**:
+- Auth screens use Forui `showFToast()` to display errors
+- Toast shows `result.error?.message` as subtitle
+- Consistent error UX across authentication flows
 
 ### iOS (Primary Platform)
 - Build: `flutter build ios`

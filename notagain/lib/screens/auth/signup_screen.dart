@@ -3,10 +3,12 @@
 /// Handles new user registration with email, password, and name
 library;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import '../../providers/auth_provider.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -23,6 +25,21 @@ class _SignupScreenState extends State<SignupScreen> {
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _agreedToTerms = false;
+  late WebViewController _termsWebViewController;
+  late WebViewController _privacyWebViewController;
+
+  @override
+  void initState() {
+    super.initState();
+    _termsWebViewController = WebViewController()
+      ..loadRequest(
+        Uri.parse('https://example.com/terms'), // Replace with actual URL
+      );
+    _privacyWebViewController = WebViewController()
+      ..loadRequest(
+        Uri.parse('https://example.com/privacy'), // Replace with actual URL
+      );
+  }
 
   @override
   void dispose() {
@@ -31,6 +48,104 @@ class _SignupScreenState extends State<SignupScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  void _showTermsBottomSheet() {
+    showFSheet(
+      context: context,
+      side: FLayout.btt,
+      draggable: false,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.8,
+        decoration: BoxDecoration(
+          color: context.theme.colors.background,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        ),
+        child: Column(
+          children: [
+            // Header with title and close button
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const SizedBox(width: 24),
+                  Text(
+                    'Terms of Service',
+                    style: context.theme.typography.lg.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Icon(
+                      FIcons.x,
+                      color: context.theme.colors.foreground,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Divider(color: context.theme.colors.border, height: 1),
+            // WebView
+            Expanded(
+              child: WebViewWidget(
+                controller: _termsWebViewController,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPrivacyBottomSheet() {
+    showFSheet(
+      context: context,
+      side: FLayout.btt,
+      draggable: false,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.8,
+        decoration: BoxDecoration(
+          color: context.theme.colors.background,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        ),
+        child: Column(
+          children: [
+            // Header with title and close button
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const SizedBox(width: 24),
+                  Text(
+                    'Privacy Policy',
+                    style: context.theme.typography.lg.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Icon(
+                      FIcons.x,
+                      color: context.theme.colors.foreground,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Divider(color: context.theme.colors.border, height: 1),
+            // WebView
+            Expanded(
+              child: WebViewWidget(
+                controller: _privacyWebViewController,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _handleSignup(AuthProvider authProvider) async {
@@ -68,6 +183,50 @@ class _SignupScreenState extends State<SignupScreen> {
         alignment: FToastAlignment.bottomCenter,
         icon: Icon(FIcons.triangleAlert, color: context.theme.colors.destructive),
         title: const Text('Signup Failed'),
+        description: Text(result.error?.message ?? 'An error occurred'),
+        duration: const Duration(seconds: 4),
+        style: (style) => style.copyWith(
+          constraints: style.constraints.copyWith(minWidth: 400),
+        ),
+      );
+    }
+  }
+
+  void _handleAppleSignIn(AuthProvider authProvider) async {
+    final result = await authProvider.signInWithApple();
+
+    if (!mounted) return;
+
+    if (result.isSuccess) {
+      context.go('/home');
+    } else {
+      showFToast(
+        context: context,
+        alignment: FToastAlignment.bottomCenter,
+        icon: Icon(FIcons.triangleAlert, color: context.theme.colors.destructive),
+        title: const Text('Apple Sign-In Failed'),
+        description: Text(result.error?.message ?? 'An error occurred'),
+        duration: const Duration(seconds: 4),
+        style: (style) => style.copyWith(
+          constraints: style.constraints.copyWith(minWidth: 400),
+        ),
+      );
+    }
+  }
+
+  void _handleGoogleSignIn(AuthProvider authProvider) async {
+    final result = await authProvider.signInWithGoogle();
+
+    if (!mounted) return;
+
+    if (result.isSuccess) {
+      context.go('/home');
+    } else {
+      showFToast(
+        context: context,
+        alignment: FToastAlignment.bottomCenter,
+        icon: Icon(FIcons.triangleAlert, color: context.theme.colors.destructive),
+        title: const Text('Google Sign-In Failed'),
         description: Text(result.error?.message ?? 'An error occurred'),
         duration: const Duration(seconds: 4),
         style: (style) => style.copyWith(
@@ -167,17 +326,60 @@ class _SignupScreenState extends State<SignupScreen> {
                     const SizedBox(height: 24),
 
                     // Terms Agreement Checkbox
-                    FCheckbox(
-                      value: _agreedToTerms,
-                      onChange: (value) {
-                        setState(() => _agreedToTerms = value);
-                      },
-                      label: Text(
-                        'I agree to the Terms of Service and Privacy Policy',
-                        style: context.theme.typography.sm.copyWith(
-                          color: context.theme.colors.foreground,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        FCheckbox(
+                          value: _agreedToTerms,
+                          onChange: (value) {
+                            setState(() => _agreedToTerms = value);
+                          },
                         ),
-                      ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => _agreedToTerms = !_agreedToTerms),
+                            child: RichText(
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: 'I agree to the ',
+                                    style: context.theme.typography.sm.copyWith(
+                                      color: context.theme.colors.foreground,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: 'Terms of Service',
+                                    style: context.theme.typography.sm.copyWith(
+                                      color: context.theme.colors.primary,
+                                      fontWeight: FontWeight.w600,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = _showTermsBottomSheet,
+                                  ),
+                                  TextSpan(
+                                    text: ' and ',
+                                    style: context.theme.typography.sm.copyWith(
+                                      color: context.theme.colors.foreground,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: 'Privacy Policy',
+                                    style: context.theme.typography.sm.copyWith(
+                                      color: context.theme.colors.primary,
+                                      fontWeight: FontWeight.w600,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = _showPrivacyBottomSheet,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 24),
 
@@ -233,14 +435,14 @@ class _SignupScreenState extends State<SignupScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             FButton(
-                              onPress: authProvider.isLoading ? null : () => authProvider.signInWithApple(),
+                              onPress: authProvider.isLoading ? null : () => _handleAppleSignIn(authProvider),
                               prefix: authProvider.isLoading ? const FCircularProgress() : const Icon(FIcons.apple),
                               style: FButtonStyle.outline(),
                               child: const Text('Continue with Apple'),
                             ),
                             const SizedBox(height: 12),
                             FButton(
-                              onPress: authProvider.isLoading ? null : () => authProvider.signInWithGoogle(),
+                              onPress: authProvider.isLoading ? null : () => _handleGoogleSignIn(authProvider),
                               prefix: authProvider.isLoading ? const FCircularProgress() : const Icon(FIcons.mail),
                               style: FButtonStyle.outline(),
                               child: const Text('Continue with Google'),

@@ -22,7 +22,7 @@ Prioritized improvements
   - Add sample SQL or migration notes in a new `docs/schema.md`.
 - Severity: High · Effort: Large
 
-3. Fix OAuth and auth-response handling
+3. ✅ Fix OAuth and auth-response handling
 - Why: Current checks may mis-handle Supabase SDK responses, hiding failures.
 - Actions:
   - Inspect Supabase SDK response types and update `signInWithApple()`/`signInWithGoogle()` in `lib/services/supabase_service.dart`.
@@ -30,14 +30,14 @@ Prioritized improvements
   - Add integration tests against a test Supabase project.
 - Severity: Medium · Effort: Small
 
-4. Reconcile native blocking docs vs implementation
+4. ❌ Reconcile native blocking docs vs implementation
 - Why: The architecture references iOS native bridging, but the native file is missing or not wired.
 - Actions:
   - Add or restore `ios/Runner/NativeBlockingService.swift` and ensure Flutter channel wiring in `lib/services/native_blocking_service.dart`.
   - Add device verification steps to README and test on a real device.
 - Severity: High · Effort: Medium
 
-5. Make routing reactive to auth state
+5. ❌ Make routing reactive to auth state
 - Why: `AppRouter` uses `context.read` in redirect logic, which can be stale.
 - Actions:
   - Use `GoRouter`'s `refreshListenable` or `GoRouterRefreshStream` tied to `AuthProvider` in `lib/routing/app_router.dart`.

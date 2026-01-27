@@ -131,28 +131,30 @@ class AuthProvider extends ChangeNotifier {
   }
 
   /// Sign in with Apple
-  Future<AuthResponse> signInWithApple() async {
+  /// Returns Result<User> with structured error handling
+  Future<Result<User>> signInWithApple() async {
     try {
       _isLoading = true;
       _error = null;
       notifyListeners();
 
-      final user = await _supabaseService.signInWithApple();
+      debugPrint('🔐 AuthProvider: Starting Apple Sign-In');
+      final result = await _supabaseService.signInWithApple();
 
-      if (user != null) {
-        _user = user;
+      if (result.isSuccess && result.data != null) {
+        _user = result.data;
         _isAuthenticated = true;
+        debugPrint('✅ AuthProvider: Apple Sign-In successful for ${result.data!.email}');
         notifyListeners();
-        return AuthResponse.success(user: user);
+        return Result.success(result.data!);
       } else {
-        _error = 'Apple Sign-In failed';
+        _error = result.error?.message ?? 'Apple Sign-In failed';
+        debugPrint('❌ AuthProvider: Apple Sign-In failed: $_error');
         notifyListeners();
-        return AuthResponse.failure(error: _error!);
+        return Result.failure(
+          result.error ?? AppError(message: 'Apple Sign-In failed'),
+        );
       }
-    } catch (e) {
-      _error = 'Apple Sign-In failed: $e';
-      notifyListeners();
-      return AuthResponse.failure(error: _error!);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -160,28 +162,30 @@ class AuthProvider extends ChangeNotifier {
   }
 
   /// Sign in with Google
-  Future<AuthResponse> signInWithGoogle() async {
+  /// Returns Result<User> with structured error handling
+  Future<Result<User>> signInWithGoogle() async {
     try {
       _isLoading = true;
       _error = null;
       notifyListeners();
 
-      final user = await _supabaseService.signInWithGoogle();
+      debugPrint('🔐 AuthProvider: Starting Google Sign-In');
+      final result = await _supabaseService.signInWithGoogle();
 
-      if (user != null) {
-        _user = user;
+      if (result.isSuccess && result.data != null) {
+        _user = result.data;
         _isAuthenticated = true;
+        debugPrint('✅ AuthProvider: Google Sign-In successful for ${result.data!.email}');
         notifyListeners();
-        return AuthResponse.success(user: user);
+        return Result.success(result.data!);
       } else {
-        _error = 'Google Sign-In failed';
+        _error = result.error?.message ?? 'Google Sign-In failed';
+        debugPrint('❌ AuthProvider: Google Sign-In failed: $_error');
         notifyListeners();
-        return AuthResponse.failure(error: _error!);
+        return Result.failure(
+          result.error ?? AppError(message: 'Google Sign-In failed'),
+        );
       }
-    } catch (e) {
-      _error = 'Google Sign-In failed: $e';
-      notifyListeners();
-      return AuthResponse.failure(error: _error!);
     } finally {
       _isLoading = false;
       notifyListeners();

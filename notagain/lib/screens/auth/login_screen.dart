@@ -58,6 +58,50 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _handleAppleSignIn(AuthProvider authProvider) async {
+    final result = await authProvider.signInWithApple();
+
+    if (!mounted) return;
+
+    if (result.isSuccess) {
+      context.go('/home');
+    } else {
+      showFToast(
+        context: context,
+        alignment: FToastAlignment.bottomCenter,
+        icon: Icon(FIcons.triangleAlert, color: context.theme.colors.destructive),
+        title: const Text('Apple Sign-In Failed'),
+        description: Text(result.error?.message ?? 'An error occurred'),
+        duration: const Duration(seconds: 4),
+        style: (style) => style.copyWith(
+          constraints: style.constraints.copyWith(minWidth: 400),
+        ),
+      );
+    }
+  }
+
+  void _handleGoogleSignIn(AuthProvider authProvider) async {
+    final result = await authProvider.signInWithGoogle();
+
+    if (!mounted) return;
+
+    if (result.isSuccess) {
+      context.go('/home');
+    } else {
+      showFToast(
+        context: context,
+        alignment: FToastAlignment.bottomCenter,
+        icon: Icon(FIcons.triangleAlert, color: context.theme.colors.destructive),
+        title: const Text('Google Sign-In Failed'),
+        description: Text(result.error?.message ?? 'An error occurred'),
+        duration: const Duration(seconds: 4),
+        style: (style) => style.copyWith(
+          constraints: style.constraints.copyWith(minWidth: 400),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return FScaffold(
@@ -159,14 +203,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             FButton(
-                              onPress: authProvider.isLoading ? null : () => authProvider.signInWithApple(),
+                              onPress: authProvider.isLoading ? null : () => _handleAppleSignIn(authProvider),
                               prefix: authProvider.isLoading ? const FCircularProgress() : const Icon(FIcons.apple),
                               style: FButtonStyle.outline(),
                               child: const Text('Continue with Apple'),
                             ),
                             const SizedBox(height: 12),
                             FButton(
-                              onPress: authProvider.isLoading ? null : () => authProvider.signInWithGoogle(),
+                              onPress: authProvider.isLoading ? null : () => _handleGoogleSignIn(authProvider),
                               prefix: authProvider.isLoading ? const FCircularProgress() : const Icon(FIcons.mail),
                               style: FButtonStyle.outline(),
                               child: const Text('Continue with Google'),
