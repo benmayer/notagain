@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../core/constants/app_constants.dart';
 import '../../providers/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -50,9 +51,9 @@ class _LoginScreenState extends State<LoginScreen> {
         icon: Icon(FIcons.triangleAlert, color: context.theme.colors.destructive),
         title: const Text('Login Failed'),
         description: Text(result.error?.message ?? 'An error occurred'),
-        duration: const Duration(seconds: 4),
+        duration: AppConstants.toastDuration,
         style: (style) => style.copyWith(
-          constraints: style.constraints.copyWith(minWidth: 400),
+          constraints: style.constraints.copyWith(minWidth: AppConstants.toastMinWidth),
         ),
       );
     }
@@ -72,9 +73,9 @@ class _LoginScreenState extends State<LoginScreen> {
         icon: Icon(FIcons.triangleAlert, color: context.theme.colors.destructive),
         title: const Text('Apple Sign-In Failed'),
         description: Text(result.error?.message ?? 'An error occurred'),
-        duration: const Duration(seconds: 4),
+        duration: AppConstants.toastDuration,
         style: (style) => style.copyWith(
-          constraints: style.constraints.copyWith(minWidth: 400),
+          constraints: style.constraints.copyWith(minWidth: AppConstants.toastMinWidth),
         ),
       );
     }
@@ -94,9 +95,9 @@ class _LoginScreenState extends State<LoginScreen> {
         icon: Icon(FIcons.triangleAlert, color: context.theme.colors.destructive),
         title: const Text('Google Sign-In Failed'),
         description: Text(result.error?.message ?? 'An error occurred'),
-        duration: const Duration(seconds: 4),
+        duration: AppConstants.toastDuration,
         style: (style) => style.copyWith(
-          constraints: style.constraints.copyWith(minWidth: 400),
+          constraints: style.constraints.copyWith(minWidth: AppConstants.toastMinWidth),
         ),
       );
     }

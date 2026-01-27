@@ -7,6 +7,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/constants/app_constants.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -60,7 +61,7 @@ class WelcomeScreen extends StatelessWidget {
           ),
           // Bottom Buttons
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 48),
+            padding: EdgeInsets.symmetric(horizontal: AppConstants.standardPadding, vertical: 48),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

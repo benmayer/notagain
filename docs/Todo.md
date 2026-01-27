@@ -26,7 +26,7 @@ Current state: ✅ Secure, well-architected, tested for auth flow. Ready for tem
 
 ---
 
-### 2. Logger Abstraction (MEDIUM PRIORITY)
+### 2. Logger Abstraction (DONE)
 **Why**: Current `debugPrint()` with emoji is dev-only. Production apps need structured logging.
 
 **Actions**:
@@ -47,36 +47,24 @@ AppLogger.error('Network request failed', error: e, stackTrace: st);
 
 ---
 
-### 3. Constants & Config Management (MEDIUM PRIORITY)
+### 3. Constants & Config Management (DONE)
 **Why**: Scattered constants and hardcoded values make maintenance harder.
 
 **Actions**:
-- Create `lib/core/constants/app_constants.dart` - Timeouts, limits, API settings, strings
-- Create `lib/core/config/app_config.dart` - Build-specific config (dev, staging, production)
+- ✅ Create `lib/core/constants/app_constants.dart` - Timeouts, limits, API settings, strings, UI dimensions
+- Create `lib/core/config/app_config.dart` - Build-specific config (dev, staging, production) - future enhancement
 - Move hardcoded values (toast duration, button sizes, API timeouts) to constants
 - Document which constants are environment-specific
-- Add to `.env` for runtime override where needed
 
-**Constants to capture**:
-```dart
-// Timeouts
-static const Duration loginTimeout = Duration(seconds: 30);
-static const Duration networkTimeout = Duration(seconds: 15);
+**Captured in `app_constants.dart`**:
+- **Timeouts**: loginTimeout, networkTimeout, toastDuration, retryDelay, debounceDelay
+- **UI Dimensions**: standardPadding, minButtonWidth, maxFormWidth, toastMinWidth, borderRadius, icon sizes
+- **Validation**: password length, name length, app name length rules
+- **API**: maxRetries, pageSize, rate limits
+- **Feature Flags**: analytics, crash reporting, offline mode, experimental features
+- **Strings**: default messages for empty state, errors, network issues, session expiry
 
-// UI
-static const Duration toastDuration = Duration(seconds: 4);
-static const double minButtonWidth = 300;
-
-// Validation
-static const int minPasswordLength = 6;
-static const int maxPasswordLength = 128;
-
-// API
-static const String supabaseApiPath = '/auth/v1';
-static const int maxRetries = 3;
-```
-
-**Status**: Not started
+**Status**: ✅ Completed
 **Effort**: Small (1 hour)
 
 ---

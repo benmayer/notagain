@@ -9,6 +9,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import '../../core/constants/app_constants.dart';
 import '../../providers/auth_provider.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -157,9 +158,9 @@ class _SignupScreenState extends State<SignupScreen> {
         icon: Icon(FIcons.triangleAlert, color: context.theme.colors.primary),
         title: const Text('Terms Required'),
         description: const Text('Please agree to the terms of service'),
-        duration: const Duration(seconds: 4),
+        duration: AppConstants.toastDuration,
         style: (style) => style.copyWith(
-          constraints: style.constraints.copyWith(minWidth: 300),
+          constraints: style.constraints.copyWith(minWidth: AppConstants.toastMinWidth),
         ),
       );
       return;
@@ -184,9 +185,9 @@ class _SignupScreenState extends State<SignupScreen> {
         icon: Icon(FIcons.triangleAlert, color: context.theme.colors.destructive),
         title: const Text('Signup Failed'),
         description: Text(result.error?.message ?? 'An error occurred'),
-        duration: const Duration(seconds: 4),
+        duration: AppConstants.toastDuration,
         style: (style) => style.copyWith(
-          constraints: style.constraints.copyWith(minWidth: 400),
+          constraints: style.constraints.copyWith(minWidth: AppConstants.toastMinWidth),
         ),
       );
     }
@@ -206,9 +207,9 @@ class _SignupScreenState extends State<SignupScreen> {
         icon: Icon(FIcons.triangleAlert, color: context.theme.colors.destructive),
         title: const Text('Apple Sign-In Failed'),
         description: Text(result.error?.message ?? 'An error occurred'),
-        duration: const Duration(seconds: 4),
+        duration: AppConstants.toastDuration,
         style: (style) => style.copyWith(
-          constraints: style.constraints.copyWith(minWidth: 400),
+          constraints: style.constraints.copyWith(minWidth: AppConstants.toastMinWidth),
         ),
       );
     }
@@ -228,9 +229,9 @@ class _SignupScreenState extends State<SignupScreen> {
         icon: Icon(FIcons.triangleAlert, color: context.theme.colors.destructive),
         title: const Text('Google Sign-In Failed'),
         description: Text(result.error?.message ?? 'An error occurred'),
-        duration: const Duration(seconds: 4),
+        duration: AppConstants.toastDuration,
         style: (style) => style.copyWith(
-          constraints: style.constraints.copyWith(minWidth: 400),
+          constraints: style.constraints.copyWith(minWidth: AppConstants.toastMinWidth),
         ),
       );
     }
@@ -249,7 +250,7 @@ class _SignupScreenState extends State<SignupScreen> {
         child: Column(
           children: [
             SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                padding: EdgeInsets.symmetric(horizontal: AppConstants.standardPadding, vertical: 24),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -411,7 +412,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: EdgeInsets.symmetric(horizontal: AppConstants.standardPadding),
                           child: Text(
                             'or',
                             style: context.theme.typography.sm.copyWith(
@@ -456,7 +457,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              padding: EdgeInsets.symmetric(horizontal: AppConstants.standardPadding, vertical: AppConstants.standardPadding),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
