@@ -50,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
         alignment: FToastAlignment.bottomCenter,
         icon: Icon(FIcons.triangleAlert, color: context.theme.colors.destructive),
         title: const Text('Login Failed'),
-        description: Text(result.error?.message ?? 'An error occurred'),
+        description: Text(result.error?.message ?? AppConstants.defaultErrorMessage),
         duration: AppConstants.toastDuration,
         style: (style) => style.copyWith(
           constraints: style.constraints.copyWith(minWidth: AppConstants.toastMinWidth),
@@ -72,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
         alignment: FToastAlignment.bottomCenter,
         icon: Icon(FIcons.triangleAlert, color: context.theme.colors.destructive),
         title: const Text('Apple Sign-In Failed'),
-        description: Text(result.error?.message ?? 'An error occurred'),
+        description: Text(result.error?.message ?? AppConstants.defaultErrorMessage),
         duration: AppConstants.toastDuration,
         style: (style) => style.copyWith(
           constraints: style.constraints.copyWith(minWidth: AppConstants.toastMinWidth),
@@ -94,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
         alignment: FToastAlignment.bottomCenter,
         icon: Icon(FIcons.triangleAlert, color: context.theme.colors.destructive),
         title: const Text('Google Sign-In Failed'),
-        description: Text(result.error?.message ?? 'An error occurred'),
+        description: Text(result.error?.message ?? AppConstants.defaultErrorMessage),
         duration: AppConstants.toastDuration,
         style: (style) => style.copyWith(
           constraints: style.constraints.copyWith(minWidth: AppConstants.toastMinWidth),
@@ -116,7 +116,6 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           children: [
             SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -138,7 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: AppConstants.standardGap),
 
                     // Password Field
                     FTextFormField.password(
@@ -180,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: EdgeInsets.symmetric(horizontal: AppConstants.standardPadding),
                           child: Text(
                             'or',
                             style: context.theme.typography.sm.copyWith(
@@ -225,7 +224,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              padding: EdgeInsets.symmetric(horizontal: AppConstants.standardPadding, vertical: AppConstants.standardPadding),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

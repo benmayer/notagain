@@ -39,6 +39,15 @@ class AppConstants {
   /// Standard gap between vertical elements
   static const double standardGap = 16.0;
 
+  /// Large gap between sections (e.g., buttons, form sections)
+  static const double largeGap = 24.0;
+
+  /// Small gap for minor spacing
+  static const double smallGap = 12.0;
+
+  /// Extra small gap for subtle spacing
+  static const double extraSmallGap = 8.0;
+
   /// Minimum width for buttons (mainly used in forms)
   static const double minButtonWidth = 300.0;
 
@@ -122,11 +131,5 @@ class AppConstants {
   static const String defaultEmptyMessage = 'No data available';
 
   /// Default error message for unhandled exceptions
-  static const String defaultErrorMessage = 'Something went wrong. Please try again.';
-
-  /// Message shown when network is unavailable
-  static const String networkErrorMessage = 'No internet connection. Please check your network.';
-
-  /// Message shown when session expires
-  static const String sessionExpiredMessage = 'Your session expired. Please sign in again.';
+  static const String defaultErrorMessage = 'Something went wrong.';
 }

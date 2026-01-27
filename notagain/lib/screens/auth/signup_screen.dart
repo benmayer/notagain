@@ -60,13 +60,13 @@ class _SignupScreenState extends State<SignupScreen> {
         height: MediaQuery.of(context).size.height * 0.8,
         decoration: BoxDecoration(
           color: context.theme.colors.background,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(AppConstants.borderRadius)),
         ),
         child: Column(
           children: [
             // Header with title and close button
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(AppConstants.standardPadding),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -109,13 +109,13 @@ class _SignupScreenState extends State<SignupScreen> {
         height: MediaQuery.of(context).size.height * 0.8,
         decoration: BoxDecoration(
           color: context.theme.colors.background,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(AppConstants.borderRadius)),
         ),
         child: Column(
           children: [
             // Header with title and close button
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(AppConstants.standardPadding),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -184,7 +184,7 @@ class _SignupScreenState extends State<SignupScreen> {
         alignment: FToastAlignment.bottomCenter,
         icon: Icon(FIcons.triangleAlert, color: context.theme.colors.destructive),
         title: const Text('Signup Failed'),
-        description: Text(result.error?.message ?? 'An error occurred'),
+        description: Text(result.error?.message ?? AppConstants.defaultErrorMessage),
         duration: AppConstants.toastDuration,
         style: (style) => style.copyWith(
           constraints: style.constraints.copyWith(minWidth: AppConstants.toastMinWidth),
@@ -206,7 +206,7 @@ class _SignupScreenState extends State<SignupScreen> {
         alignment: FToastAlignment.bottomCenter,
         icon: Icon(FIcons.triangleAlert, color: context.theme.colors.destructive),
         title: const Text('Apple Sign-In Failed'),
-        description: Text(result.error?.message ?? 'An error occurred'),
+        description: Text(result.error?.message ?? AppConstants.defaultErrorMessage),
         duration: AppConstants.toastDuration,
         style: (style) => style.copyWith(
           constraints: style.constraints.copyWith(minWidth: AppConstants.toastMinWidth),
@@ -228,7 +228,7 @@ class _SignupScreenState extends State<SignupScreen> {
         alignment: FToastAlignment.bottomCenter,
         icon: Icon(FIcons.triangleAlert, color: context.theme.colors.destructive),
         title: const Text('Google Sign-In Failed'),
-        description: Text(result.error?.message ?? 'An error occurred'),
+        description: Text(result.error?.message ?? AppConstants.defaultErrorMessage),
         duration: AppConstants.toastDuration,
         style: (style) => style.copyWith(
           constraints: style.constraints.copyWith(minWidth: AppConstants.toastMinWidth),
@@ -250,7 +250,6 @@ class _SignupScreenState extends State<SignupScreen> {
         child: Column(
           children: [
             SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: AppConstants.standardPadding, vertical: 24),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -269,7 +268,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       },
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: AppConstants.standardGap),
 
                     // Email Field
                     FTextFormField.email(
@@ -288,7 +287,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       },
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: AppConstants.standardGap),
 
                     // Password Field
                     FTextFormField.password(
@@ -299,8 +298,8 @@ class _SignupScreenState extends State<SignupScreen> {
                         if (value == null || value.isEmpty) {
                           return 'Password is required';
                         }
-                        if (value.length < 6) {
-                          return 'Password must be at least 6 characters';
+                        if (value.length < AppConstants.minPasswordLength) {
+                          return 'Password must be at least ${AppConstants.minPasswordLength} characters';
                         }
                         return null;
                       },
@@ -324,7 +323,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       },
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: AppConstants.largeGap),
 
                     // Terms Agreement Checkbox
                     Row(
@@ -382,7 +381,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: AppConstants.largeGap),
 
                     // Sign Up Button
                     Consumer<AuthProvider>(
@@ -401,7 +400,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         );
                       },
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: AppConstants.largeGap),
 
                     // Divider
                     Row(
@@ -427,7 +426,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: AppConstants.largeGap),
 
                     // Social Auth Buttons
                     Consumer<AuthProvider>(

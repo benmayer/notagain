@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/settings_provider.dart';
@@ -55,9 +56,7 @@ class SettingsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
+            Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Account Section
@@ -178,22 +177,15 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
             // Divider
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: FDivider(),
-            ),
+            FDivider(),
             // Logout Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: FButton(
-                onPress: () => _handleLogout(context),
-                style: FButtonStyle.destructive(),
-                child: const Text('Sign Out'),
-              ),
+            FButton(
+              onPress: () => _handleLogout(context),
+              style: FButtonStyle.destructive(),
+              child: const Text('Sign Out'),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: AppConstants.standardGap),
           ],
         ),
       ),

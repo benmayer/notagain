@@ -18,7 +18,7 @@ class WelcomeScreen extends StatelessWidget {
       child: Column(
         children: [
           // Top spacing
-          const SizedBox(height: 48),
+          SizedBox(height: 48),
           // App Logo & Title
           Expanded(
             child: Center(
@@ -40,7 +40,7 @@ class WelcomeScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: AppConstants.largeGap),
                   Text(
                     'NotAgain',
                     style: context.theme.typography.xl.copyWith(
@@ -48,7 +48,7 @@ class WelcomeScreen extends StatelessWidget {
                       color: context.theme.colors.foreground,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: AppConstants.extraSmallGap),
                   Text(
                     'Take control of your screen time',
                     style: context.theme.typography.base.copyWith(
@@ -70,7 +70,7 @@ class WelcomeScreen extends StatelessWidget {
                   style: FButtonStyle.primary(),
                   child: const Text('Get Started'),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: AppConstants.smallGap),
                 FButton(
                   onPress: () => context.go('/login'),
                   style: FButtonStyle.secondary(),
