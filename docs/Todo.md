@@ -44,7 +44,7 @@ Prioritized improvements
   - Add tests for cold-start and logged-in redirect behavior.
 - Severity: Medium · Effort: Small
 
-6. Standardize result/error types
+6. ✅ Standardize result/error types
 - Why: Inconsistent error handling complicates UI and tests.
 - Actions:
   - Define a shared `Result<T>` or extend `AuthResponse` in `lib/models/user.dart`.
@@ -83,7 +83,7 @@ Prioritized improvements
   - Move TODOs from `lib/services/supabase_service.dart` into tracked GitHub issues and reference issue numbers in code comments.
 - Severity: Low · Effort: Small
 
-12. Create mail Layout file, so th homepage doesn't need to import all pages: 
+12. ✅  Create main Layout file, so th homepage doesn't need to import all pages: 
 
 
 PR checklist

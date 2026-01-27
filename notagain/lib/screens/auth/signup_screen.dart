@@ -36,13 +36,21 @@ class _SignupScreenState extends State<SignupScreen> {
   void _handleSignup(AuthProvider authProvider) async {
     if (!_formKey.currentState!.validate()) return;
     if (!_agreedToTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please agree to the terms')),
+      showFToast(
+        context: context,
+        alignment: FToastAlignment.bottomCenter,
+        icon: Icon(FIcons.triangleAlert, color: context.theme.colors.primary),
+        title: const Text('Terms Required'),
+        description: const Text('Please agree to the terms of service'),
+        duration: const Duration(seconds: 4),
+        style: (style) => style.copyWith(
+          constraints: style.constraints.copyWith(minWidth: 300),
+        ),
       );
       return;
     }
 
-    final response = await authProvider.signup(
+    final result = await authProvider.signup(
       email: _emailController.text.trim(),
       password: _passwordController.text,
       fullName: _nameController.text.trim(),
@@ -50,12 +58,21 @@ class _SignupScreenState extends State<SignupScreen> {
 
     if (!mounted) return;
 
-    if (response.isSuccess && response.user != null) {
+    if (result.isSuccess) {
       // Navigate to home screen via go_router
       context.go('/home');
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response.error ?? 'Signup failed')),
+      // Show Forui toast notification
+      showFToast(
+        context: context,
+        alignment: FToastAlignment.bottomCenter,
+        icon: Icon(FIcons.triangleAlert, color: context.theme.colors.destructive),
+        title: const Text('Signup Failed'),
+        description: Text(result.error?.message ?? 'An error occurred'),
+        duration: const Duration(seconds: 4),
+        style: (style) => style.copyWith(
+          constraints: style.constraints.copyWith(minWidth: 400),
+        ),
       );
     }
   }

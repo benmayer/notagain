@@ -9,6 +9,7 @@ library;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/user.dart';
+import '../models/result.dart';
 import '../services/supabase_service.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -56,7 +57,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   /// Sign up with email and password
-  Future<AuthResponse> signup({
+  Future<Result<User>> signup({
     required String email,
     required String password,
     String? fullName,
@@ -67,29 +68,26 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
 
       debugPrint('🔐 AuthProvider: Starting signup for $email');
-      final user = await _supabaseService.signup(
+      final result = await _supabaseService.signup(
         email: email,
         password: password,
         fullName: fullName,
       );
 
-      if (user != null) {
-        _user = user;
+      if (result.isSuccess && result.data != null) {
+        _user = result.data;
         _isAuthenticated = true;
         debugPrint('✅ AuthProvider: Signup successful for $email');
         notifyListeners();
-        return AuthResponse.success(user: user);
+        return Result.success(result.data!);
       } else {
-        _error = 'Signup failed: Unknown error';
-        debugPrint('❌ AuthProvider: Signup returned null for $email');
+        _error = result.error?.message ?? 'Signup failed';
+        debugPrint('❌ AuthProvider: Signup failed: $_error');
         notifyListeners();
-        return AuthResponse.failure(error: _error!);
+        return Result.failure(
+          result.error ?? AppError(message: 'Signup failed'),
+        );
       }
-    } catch (e) {
-      _error = 'Signup failed: $e';
-      debugPrint('❌ AuthProvider: Signup exception: $e');
-      notifyListeners();
-      return AuthResponse.failure(error: _error!);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -97,7 +95,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   /// Sign in with email and password
-  Future<AuthResponse> login({
+  Future<Result<User>> login({
     required String email,
     required String password,
   }) async {
@@ -107,28 +105,25 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
 
       debugPrint('🔐 AuthProvider: Starting login for $email');
-      final user = await _supabaseService.login(
+      final result = await _supabaseService.login(
         email: email,
         password: password,
       );
 
-      if (user != null) {
-        _user = user;
+      if (result.isSuccess && result.data != null) {
+        _user = result.data;
         _isAuthenticated = true;
         debugPrint('✅ AuthProvider: Login successful for $email');
         notifyListeners();
-        return AuthResponse.success(user: user);
+        return Result.success(result.data!);
       } else {
-        _error = 'Login failed: Unknown error';
-        debugPrint('❌ AuthProvider: Login returned null for $email');
+        _error = result.error?.message ?? 'Login failed';
+        debugPrint('❌ AuthProvider: Login failed: $_error');
         notifyListeners();
-        return AuthResponse.failure(error: _error!);
+        return Result.failure(
+          result.error ?? AppError(message: 'Login failed'),
+        );
       }
-    } catch (e) {
-      _error = 'Login failed: $e';
-      debugPrint('❌ AuthProvider: Login exception: $e');
-      notifyListeners();
-      return AuthResponse.failure(error: _error!);
     } finally {
       _isLoading = false;
       notifyListeners();

@@ -16,6 +16,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user.dart' as app_user;
 import '../models/blocking_rule.dart';
+import '../models/result.dart';
 
 class SupabaseService {
   static final SupabaseService _instance = SupabaseService._internal();
@@ -77,7 +78,7 @@ class SupabaseService {
   bool get isAuthenticated => _client.auth.currentUser != null;
 
   /// Sign up with email and password
-  Future<app_user.User?> signup({
+  Future<Result<app_user.User>> signup({
     required String email,
     required String password,
     String? fullName,
@@ -98,23 +99,36 @@ class SupabaseService {
           fullName: fullName,
         );
 
-        return app_user.User(
+        final user = app_user.User(
           id: response.user!.id,
           email: response.user!.email ?? '',
           fullName: fullName,
           createdAt: _parseDateTime(response.user!.createdAt),
         );
+        return Result.success(user);
       }
       debugPrint('❌ SupabaseService: Signup returned null user');
-      return null;
+      return Result.failure(
+        AppError(message: 'Signup failed: No user returned'),
+      );
+    } on AuthException catch (e) {
+      debugPrint('❌ SupabaseService: Signup auth exception: ${e.message}');
+      return Result.failure(
+        AppError(
+          message: e.message,
+          exception: e,
+          code: e.statusCode != null ? int.tryParse(e.statusCode!) : null,
+          errorCode: e.statusCode,
+        ),
+      );
     } catch (e) {
       debugPrint('❌ SupabaseService: Signup exception: $e');
-      throw Exception('Signup failed: $e');
+      return Result.failure(AppError.fromException(e, message: 'Signup failed'));
     }
   }
 
   /// Login with email and password
-  Future<app_user.User?> login({
+  Future<Result<app_user.User>> login({
     required String email,
     required String password,
   }) async {
@@ -125,15 +139,29 @@ class SupabaseService {
       );
 
       if (response.user != null) {
-        return app_user.User(
+        final user = app_user.User(
           id: response.user!.id,
           email: response.user!.email ?? '',
           createdAt: _parseDateTime(response.user!.createdAt),
         );
+        return Result.success(user);
       }
-      return null;
+      return Result.failure(
+        AppError(message: 'Login failed: No user returned'),
+      );
+    } on AuthException catch (e) {
+      debugPrint('❌ SupabaseService: Login auth exception: ${e.message}');
+      return Result.failure(
+        AppError(
+          message: e.message,
+          exception: e,
+          code: e.statusCode != null ? int.tryParse(e.statusCode!) : null,
+          errorCode: e.statusCode,
+        ),
+      );
     } catch (e) {
-      throw Exception('Login failed: $e');
+      debugPrint('❌ SupabaseService: Login exception: $e');
+      return Result.failure(AppError.fromException(e, message: 'Login failed'));
     }
   }
 

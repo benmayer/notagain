@@ -32,19 +32,28 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleLogin(AuthProvider authProvider) async {
     if (!_formKey.currentState!.validate()) return;
 
-    final response = await authProvider.login(
+    final result = await authProvider.login(
       email: _emailController.text.trim(),
       password: _passwordController.text,
     );
 
     if (!mounted) return;
 
-    if (response.isSuccess && response.user != null) {
+    if (result.isSuccess) {
       // Navigate to home screen via go_router
       context.go('/home');
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response.error ?? 'Login failed')),
+      // Show Forui toast notification
+      showFToast(
+        context: context,
+        alignment: FToastAlignment.bottomCenter,
+        icon: Icon(FIcons.triangleAlert, color: context.theme.colors.destructive),
+        title: const Text('Login Failed'),
+        description: Text(result.error?.message ?? 'An error occurred'),
+        duration: const Duration(seconds: 4),
+        style: (style) => style.copyWith(
+          constraints: style.constraints.copyWith(minWidth: 400),
+        ),
       );
     }
   }
