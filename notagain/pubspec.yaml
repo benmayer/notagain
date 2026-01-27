@@ -38,6 +38,9 @@ dependencies:
   # UI Framework
   forui: ^0.17.0
 
+  # Logging
+  logger: ^2.0.0
+
   # Backend & Authentication
   supabase_flutter: ^2.12.0
 

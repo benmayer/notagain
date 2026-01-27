@@ -1,103 +1,219 @@
-# NotAgain — Improvements Backlog
+# NotAgain — Template Foundation Improvements
 
-Summary
+## Overview
+NotAgain is being built as a **reusable Flutter template** for screen time management apps. This document tracks improvements to solidify the foundation for future projects using this as a starting point.
 
-NotAgain has a clear, well-documented architecture, Provider-based state management, and a strong theming strategy using Forui + Material 3. The highest risks are exposed secrets and incomplete backend/native integrations that block core functionality.
+Current state: ✅ Secure, well-architected, tested for auth flow. Ready for template hardening.
 
-Prioritized improvements
+---
 
-1. ✅ Remove hardcoded Supabase credentials
-- Why: Keys in source are a security risk and invalidate safe release practices.
-- Actions:
-  - Move `supabaseUrl`/`supabaseKey` to environment variables and load with `flutter_dotenv`.
-  - Update `lib/main.dart` to read env vars and fail fast when missing.
-  - Add `.env.example` and update README with setup steps.
-- Severity: High · Effort: Small
+## Priority Improvements
 
-2. ✅ Implement missing `SupabaseService` methods
-- Why: Core CRUD/analytics methods are incomplete, blocking rules and analytics flows.
-- Actions:
-  - Complete CRUD for `blocking_rules`, `profiles`, `app_usage` in `lib/services/supabase_service.dart`.
-  - Add typed DTOs under `lib/models/` and unit tests in `test/`.
-  - Add sample SQL or migration notes in a new `docs/schema.md`.
-- Severity: High · Effort: Large
+### 1. Testing Infrastructure (HIGH PRIORITY)
+**Why**: Templates need test scaffolding so future projects don't start from zero.
 
-3. ✅ Fix OAuth and auth-response handling
-- Why: Current checks may mis-handle Supabase SDK responses, hiding failures.
-- Actions:
-  - Inspect Supabase SDK response types and update `signInWithApple()`/`signInWithGoogle()` in `lib/services/supabase_service.dart`.
-  - Surface explicit errors to `lib/providers/auth_provider.dart` and UI snackbars.
-  - Add integration tests against a test Supabase project.
-- Severity: Medium · Effort: Small
+**Scope** (simplified for template stage):
+- Add `test/helpers/test_helpers.dart` - Mock providers, mock Supabase client, test utilities
+- Add `test/unit/providers/auth_provider_test.dart` - Auth flow (signup, login, logout)
+- Add `test/unit/services/supabase_service_test.dart` - Service methods with mocked client
+- Add `test/widget/screens/login_screen_test.dart` - UI interactions (form validation, button taps)
+- Add GitHub Actions workflow `.github/workflows/test.yml` - Run `flutter analyze && flutter test`
+- Update `pubspec.yaml` with test dependencies: `mockito`, `mocktail`
 
-4. ❌ Reconcile native blocking docs vs implementation
-- Why: The architecture references iOS native bridging, but the native file is missing or not wired.
-- Actions:
-  - Add or restore `ios/Runner/NativeBlockingService.swift` and ensure Flutter channel wiring in `lib/services/native_blocking_service.dart`.
-  - Add device verification steps to README and test on a real device.
-- Severity: High · Effort: Medium
+**Impact**: Future projects get a working test suite to extend.
+**Status**: Not started
+**Effort**: Medium (2-3 hours)
 
-5. ❌ Make routing reactive to auth state
-- Why: `AppRouter` uses `context.read` in redirect logic, which can be stale.
-- Actions:
-  - Use `GoRouter`'s `refreshListenable` or `GoRouterRefreshStream` tied to `AuthProvider` in `lib/routing/app_router.dart`.
-  - Add tests for cold-start and logged-in redirect behavior.
-- Severity: Medium · Effort: Small
+---
 
-6. ✅ Standardize result/error types
-- Why: Inconsistent error handling complicates UI and tests.
-- Actions:
-  - Define a shared `Result<T>` or extend `AuthResponse` in `lib/models/user.dart`.
-  - Refactor `SupabaseService` to return structured results and update providers.
-- Severity: Medium · Effort: Small
+### 2. Logger Abstraction (MEDIUM PRIORITY)
+**Why**: Current `debugPrint()` with emoji is dev-only. Production apps need structured logging.
 
-7. Add automated tests and CI
-- Why: Low test coverage for core flows increases regressions risk.
-- Actions:
-  - Add unit tests for `AuthProvider` and `SupabaseService` (mocking Supabase client).
-  - Add widget tests for `LoginScreen` and `RuleCreationScreen` and a GitHub Actions workflow to run `flutter analyze` and `flutter test`.
-- Severity: Medium · Effort: Medium
+**Actions**:
+- Create `lib/core/logging/app_logger.dart` - Abstraction for different log levels (debug, info, warn, error)
+- Support multiple outputs: console (dev), file (production), external service (Sentry, future)
+- Centralized formatting with context (timestamp, level, module)
+- Replace all `debugPrint()` calls with `AppLogger.debug()`, `AppLogger.info()`, etc.
+- Document log levels in `docs/LOGGING.md`
 
-8. ✅ Enforce Forui-first component usage
-- Why: Project requires Forui UI consistency and the agent guidance mandates Forui-first components.
-- Actions:
-  - Audit `lib/widgets/` and refactor custom buttons/inputs to wrap Forui equivalents.
-  - Add a PR checklist item to verify Forui usage and update `.github/copilot-instructions.md` (already added).
-- Severity: Medium · Effort: Medium
+**Pattern**:
+```dart
+AppLogger.info('User signed in', tag: 'AuthProvider');
+AppLogger.error('Network request failed', error: e, stackTrace: st);
+```
 
-9. ✅ Apply Forui theme at app root
-- Why: `AppTheme` provides Forui themes but the app root must apply them for consistency.
-- Actions:
-  - Wrap `MyApp` with Forui theme provider and apply `AppTheme.forLightTheme()` / `forDarkTheme()` in `lib/main.dart` and `lib/core/theme/app_theme.dart`.
-- Severity: Low · Effort: Small
+**Status**: Not started
+**Effort**: Small (1.5 hours)
 
-10. ✅ Rotate leaked secrets & add prevention
-- Why: If keys were committed, they should be rotated and prevented from recurrence.
-- Actions:
-  - Rotate Supabase keys in the dashboard, add secret-detection to CI, and document the secrets policy in README.
-- Severity: High · Effort: Small
+---
 
-11. Consolidate TODOs and track issues
-- Why: Scattered TODOs increase maintenance friction.
-- Actions:
-  - Move TODOs from `lib/services/supabase_service.dart` into tracked GitHub issues and reference issue numbers in code comments.
-- Severity: Low · Effort: Small
+### 3. Constants & Config Management (MEDIUM PRIORITY)
+**Why**: Scattered constants and hardcoded values make maintenance harder.
 
-12. ✅  Create main Layout file, so th homepage doesn't need to import all pages: 
+**Actions**:
+- Create `lib/core/constants/app_constants.dart` - Timeouts, limits, API settings, strings
+- Create `lib/core/config/app_config.dart` - Build-specific config (dev, staging, production)
+- Move hardcoded values (toast duration, button sizes, API timeouts) to constants
+- Document which constants are environment-specific
+- Add to `.env` for runtime override where needed
 
+**Constants to capture**:
+```dart
+// Timeouts
+static const Duration loginTimeout = Duration(seconds: 30);
+static const Duration networkTimeout = Duration(seconds: 15);
 
-PR checklist
+// UI
+static const Duration toastDuration = Duration(seconds: 4);
+static const double minButtonWidth = 300;
 
-- Run `flutter analyze` and `flutter format`.
-- Run `flutter test` (unit + widget) locally; include tests for changed logic.
-- Ensure no secrets committed; add/update `.env.example`.
-- Update `README.md` and `docs/` for any behavioral changes.
-- If native code changed, verify builds on device: `flutter build ios` or `flutter build appbundle`.
-- Bump version in `pubspec.yaml` for breaking changes.
+// Validation
+static const int minPasswordLength = 6;
+static const int maxPasswordLength = 128;
 
-Next steps (pick one to start)
+// API
+static const String supabaseApiPath = '/auth/v1';
+static const int maxRetries = 3;
+```
 
-1. Immediately move Supabase credentials to env and add `.env.example` (high impact, small effort).
+**Status**: Not started
+**Effort**: Small (1 hour)
+
+---
+
+### 4. Routing Guards & Middleware (MEDIUM PRIORITY)
+**Why**: Current routing handles auth, but not permissions or feature gates.
+
+**Actions**:
+- Create `lib/routing/route_guards.dart` - Guards for auth, permissions, feature flags
+- Update `lib/routing/app_router.dart` to use guards on protected routes
+- Implement permission checks (e.g., "Screen Time access required")
+- Implement feature flag checks
+- Redirect to permission request or feature unavailable screens
+- Document guard patterns in `docs/ROUTING.md`
+
+**Pattern**:
+```dart
+GoRoute(
+  path: '/blocking-rules',
+  redirect: _requiresScreenTimePermission,
+  builder: (context, state) => StartScreen(),
+)
+
+String? _requiresScreenTimePermission(context, state) {
+  if (!hasScreenTimePermission) {
+    return '/permissions-request?next=/blocking-rules';
+  }
+  return null;
+}
+```
+
+**Status**: Not started
+**Effort**: Small (1-1.5 hours)
+
+---
+
+### 5. ❌ Make Routing Reactive to Auth State (MEDIUM PRIORITY)
+**Why**: Current `AppRouter` uses `context.read()` which can become stale in edge cases.
+
+**Current Issue**:
+```dart
+// In app_router.dart redirect:
+final authProvider = ref.read(authProvider);  // ← Can be stale
+```
+
+**Solution**: Use `Listenable.merge()` to make routing reactive:
+```dart
+GoRouter(
+  refreshListenable: Listenable.merge([authProvider]),
+  redirect: (context, state) {
+    final isAuth = context.watch<AuthProvider>().isAuthenticated;
+    // ... redirect logic
+  },
+)
+```
+
+**Requires context**:
+- Need to verify current redirect logic and test edge cases (cold start, logout, session expiry)
+- May need to add test cases for routing behavior
+
+**Status**: Blocked (need to review `app_router.dart` in detail)
+**Effort**: Small (30-45 mins once scoped)
+
+---
+
+### 6. Documentation (HIGH PRIORITY)
+**Why**: Templates need guides for developers to extend them.
+
+**Create**:
+- `docs/DEVELOPMENT.md` - Local setup, running the app, debugging
+- `docs/PATTERNS.md` - Architecture patterns (Result<T>, Service layer, Provider pattern)
+- `docs/TESTING.md` - Writing tests, running test suite, CI/CD
+- `docs/LOGGING.md` - Logging strategy and usage
+- `docs/ROUTING.md` - Routing patterns, guards, deep linking
+- `.github/CONTRIBUTING.md` - PR requirements, code style, checklist
+- Update `README.md` - Add "Using as a Template" section with copy-paste checklist
+
+**README Template Section**:
+```markdown
+## Using as a Template
+
+To start a new project from NotAgain:
+
+1. Clone this repo: `git clone https://github.com/benmayer/NotAgain.git new-project`
+2. Update `pubspec.yaml`: Change name, description, version
+3. Copy `.env.example` to `.env` and add your credentials
+4. Run `flutter pub get`
+5. Follow `docs/DEVELOPMENT.md` for local setup
+6. See `docs/PATTERNS.md` for architecture patterns
+```
+
+**Status**: Not started
+**Effort**: Small-Medium (2 hours)
+
+---
+
+## Completed ✅
+
+- ✅ Secure credentials management (environment variables)
+- ✅ OAuth error handling (Result<User> + Forui toasts)
+- ✅ Forui-first UI components
+- ✅ Centralized layout (main_layout.dart)
+- ✅ State management (Provider)
+- ✅ Auth flow (signup, login, logout)
+
+---
+
+## PR Checklist (for all changes)
+
+- [ ] Run `flutter analyze` - No warnings
+- [ ] Run `flutter format` - Code formatted
+- [ ] Run `flutter test` - All tests pass
+- [ ] Update `README.md` or relevant `docs/` files
+- [ ] No secrets committed (check `.env` not in git)
+- [ ] Code reviewed for template reusability
+
+---
+
+## Implementation Order (Recommended)
+
+1. **Logger Abstraction** (1.5 hours) - Foundation for better debugging
+2. **Constants & Config** (1 hour) - Reduces magic numbers
+3. **Testing Infrastructure** (2-3 hours) - Gives template test foundation
+4. **Documentation** (2 hours) - Essential for template usage
+5. **Routing Guards** (1.5 hours) - Improves UX for future features
+6. **Reactive Routing** (0.5 hours) - Bug fix, once scoped
+
+**Total**: ~9 hours to production-grade template
+
+---
+
+## Notes for Future Contributors
+
+- Keep the template **focused on auth & state management** - it's not a full app yet
+- Each improvement should have **reusable patterns** for future projects
+- Document **why** each pattern exists, not just how
+- Test coverage should demonstrate patterns, not be exhaustive
 2. Implement core `SupabaseService` methods for auth/profile/rules and add unit tests (large effort).
 3. Reconcile and stub the iOS native blocking service, then test channel wiring from `lib/services/native_blocking_service.dart`.
 

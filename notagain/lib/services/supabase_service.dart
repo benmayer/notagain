@@ -12,8 +12,8 @@
 /// other parts of the application.
 library;
 
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../core/logging/app_logger.dart';
 import '../models/user.dart' as app_user;
 import '../models/blocking_rule.dart';
 import '../models/result.dart';
@@ -84,14 +84,14 @@ class SupabaseService {
     String? fullName,
   }) async {
     try {
-      debugPrint('🔐 SupabaseService: Attempting signup for $email');
+      AppLogger.info('Attempting signup for $email', tag: 'SupabaseService');
       final response = await _client.auth.signUp(
         email: email,
         password: password,
       );
 
       if (response.user != null) {
-        debugPrint('✅ SupabaseService: User created in auth.users: ${response.user!.id}');
+        AppLogger.info('User created in auth.users: ${response.user!.id}', tag: 'SupabaseService');
         // Create user profile in database
         await _createUserProfile(
           userId: response.user!.id,
@@ -107,12 +107,12 @@ class SupabaseService {
         );
         return Result.success(user);
       }
-      debugPrint('❌ SupabaseService: Signup returned null user');
+      AppLogger.warning('Signup returned null user', tag: 'SupabaseService');
       return Result.failure(
         AppError(message: 'Signup failed: No user returned'),
       );
     } on AuthException catch (e) {
-      debugPrint('❌ SupabaseService: Signup auth exception: ${e.message}');
+      AppLogger.error('Signup auth exception: ${e.message}', tag: 'SupabaseService');
       return Result.failure(
         AppError(
           message: e.message,
@@ -122,7 +122,7 @@ class SupabaseService {
         ),
       );
     } catch (e) {
-      debugPrint('❌ SupabaseService: Signup exception: $e');
+      AppLogger.error('Signup exception: $e', tag: 'SupabaseService');
       return Result.failure(AppError.fromException(e, message: 'Signup failed'));
     }
   }
@@ -150,7 +150,7 @@ class SupabaseService {
         AppError(message: 'Login failed: No user returned'),
       );
     } on AuthException catch (e) {
-      debugPrint('❌ SupabaseService: Login auth exception: ${e.message}');
+      AppLogger.error('Login auth exception: ${e.message}', tag: 'SupabaseService');
       return Result.failure(
         AppError(
           message: e.message,
@@ -160,7 +160,7 @@ class SupabaseService {
         ),
       );
     } catch (e) {
-      debugPrint('❌ SupabaseService: Login exception: $e');
+      AppLogger.error('Login exception: $e', tag: 'SupabaseService');
       return Result.failure(AppError.fromException(e, message: 'Login failed'));
     }
   }
@@ -181,18 +181,18 @@ class SupabaseService {
     String? fullName,
   }) async {
     try {
-      debugPrint('📝 SupabaseService: Creating profile for user $userId');
+      AppLogger.info('Creating profile for user $userId', tag: 'SupabaseService');
       await _client.from('profiles').insert({
         'id': userId,
         'email': email,
         'full_name': fullName,
         'created_at': DateTime.now().toIso8601String(),
       });
-      debugPrint('✅ SupabaseService: Profile created successfully');
+      AppLogger.info('Profile created successfully', tag: 'SupabaseService');
     } catch (e) {
       // Profile might already exist, or table doesn't exist yet
       // This is okay for MVP - we'll handle it gracefully
-      debugPrint('⚠️  SupabaseService: Profile creation warning: $e');
+      AppLogger.warning('Profile creation warning: $e', tag: 'SupabaseService');
     }
   }
 
@@ -200,14 +200,14 @@ class SupabaseService {
   /// Returns Result<User> with structured error handling
   Future<Result<app_user.User>> signInWithApple() async {
     try {
-      debugPrint('🔐 SupabaseService: Starting Apple Sign-In');
+      AppLogger.info('Starting Apple Sign-In', tag: 'SupabaseService');
       await _client.auth.signInWithOAuth(
         OAuthProvider.apple,
       );
       
       final authUser = _client.auth.currentUser;
       if (authUser != null) {
-        debugPrint('✅ SupabaseService: Apple Sign-In successful for ${authUser.email}');
+        AppLogger.info('Apple Sign-In successful for ${authUser.email}', tag: 'SupabaseService');
         // Create user profile in database if it doesn't exist
         await _createUserProfile(
           userId: authUser.id,
@@ -224,12 +224,12 @@ class SupabaseService {
           ),
         );
       }
-      debugPrint('❌ SupabaseService: Apple Sign-In returned null user');
+      AppLogger.warning('Apple Sign-In returned null user', tag: 'SupabaseService');
       return Result.failure(
         AppError(message: 'Apple Sign-In failed: No user returned'),
       );
     } on AuthException catch (e) {
-      debugPrint('❌ SupabaseService: Apple Sign-In auth exception: ${e.message}');
+      AppLogger.error('Apple Sign-In auth exception: ${e.message}', tag: 'SupabaseService');
       return Result.failure(
         AppError(
           message: e.message,
@@ -239,7 +239,7 @@ class SupabaseService {
         ),
       );
     } catch (e) {
-      debugPrint('❌ SupabaseService: Apple Sign-In exception: $e');
+      AppLogger.error('Apple Sign-In exception: $e', tag: 'SupabaseService');
       return Result.failure(AppError.fromException(e, message: 'Apple Sign-In failed'));
     }
   }
@@ -248,14 +248,14 @@ class SupabaseService {
   /// Returns Result<User> with structured error handling
   Future<Result<app_user.User>> signInWithGoogle() async {
     try {
-      debugPrint('🔐 SupabaseService: Starting Google Sign-In');
+      AppLogger.info('Starting Google Sign-In', tag: 'SupabaseService');
       await _client.auth.signInWithOAuth(
         OAuthProvider.google,
       );
       
       final authUser = _client.auth.currentUser;
       if (authUser != null) {
-        debugPrint('✅ SupabaseService: Google Sign-In successful for ${authUser.email}');
+        AppLogger.info('Google Sign-In successful for ${authUser.email}', tag: 'SupabaseService');
         // Create user profile in database if it doesn't exist
         await _createUserProfile(
           userId: authUser.id,
@@ -272,12 +272,12 @@ class SupabaseService {
           ),
         );
       }
-      debugPrint('❌ SupabaseService: Google Sign-In returned null user');
+      AppLogger.warning('Google Sign-In returned null user', tag: 'SupabaseService');
       return Result.failure(
         AppError(message: 'Google Sign-In failed: No user returned'),
       );
     } on AuthException catch (e) {
-      debugPrint('❌ SupabaseService: Google Sign-In auth exception: ${e.message}');
+      AppLogger.error('Google Sign-In auth exception: ${e.message}', tag: 'SupabaseService');
       return Result.failure(
         AppError(
           message: e.message,
@@ -287,7 +287,7 @@ class SupabaseService {
         ),
       );
     } catch (e) {
-      debugPrint('❌ SupabaseService: Google Sign-In exception: $e');
+      AppLogger.error('Google Sign-In exception: $e', tag: 'SupabaseService');
       return Result.failure(AppError.fromException(e, message: 'Google Sign-In failed'));
     }
   }
@@ -299,7 +299,7 @@ class SupabaseService {
   /// Get user profile by ID
   Future<Map<String, dynamic>?> getUserProfile(String userId) async {
     try {
-      debugPrint('📋 SupabaseService: Fetching profile for user $userId');
+      AppLogger.info('Fetching profile for user $userId', tag: 'SupabaseService');
       final response = await _client
           .from('profiles')
           .select()
@@ -307,12 +307,12 @@ class SupabaseService {
           .maybeSingle();
       
       if (response != null) {
-        debugPrint('✅ SupabaseService: Profile found');
+        AppLogger.info('Profile found', tag: 'SupabaseService');
         return response;
       }
       return null;
     } catch (e) {
-      debugPrint('❌ SupabaseService: Get profile failed: $e');
+      AppLogger.error('Get profile failed: $e', tag: 'SupabaseService');
       throw Exception('Failed to get profile: $e');
     }
   }
@@ -324,16 +324,16 @@ class SupabaseService {
     String? avatarUrl,
   }) async {
     try {
-      debugPrint('✏️  SupabaseService: Updating profile for user $userId');
+      AppLogger.info('Updating profile for user $userId', tag: 'SupabaseService');
       await _client.from('profiles').update({
         'full_name': fullName,
         if (avatarUrl != null) 'avatar_url': avatarUrl,
         'updated_at': DateTime.now().toIso8601String(),
       }).eq('id', userId);
       
-      debugPrint('✅ SupabaseService: Profile updated successfully');
+      AppLogger.info('Profile updated successfully', tag: 'SupabaseService');
     } catch (e) {
-      debugPrint('❌ SupabaseService: Update profile failed: $e');
+      AppLogger.error('Update profile failed: $e', tag: 'SupabaseService');
       throw Exception('Failed to update profile: $e');
     }
   }
@@ -352,7 +352,7 @@ class SupabaseService {
       final userId = _client.auth.currentUser?.id;
       if (userId == null) throw Exception('User not authenticated');
 
-      debugPrint('➕ SupabaseService: Creating blocking rule for $appName');
+      AppLogger.info('Creating blocking rule for $appName', tag: 'SupabaseService');
       final response = await _client.from('blocking_rules').insert({
         'user_id': userId,
         'app_name': appName,
@@ -363,10 +363,10 @@ class SupabaseService {
       }).select().single();
 
       final rule = BlockingRule.fromJson(response);
-      debugPrint('✅ SupabaseService: Blocking rule created: ${rule.id}');
+      AppLogger.info('Blocking rule created: ${rule.id}', tag: 'SupabaseService');
       return rule;
     } catch (e) {
-      debugPrint('❌ SupabaseService: Create blocking rule failed: $e');
+      AppLogger.error('Create blocking rule failed: $e', tag: 'SupabaseService');
       throw Exception('Failed to create blocking rule: $e');
     }
   }
@@ -377,7 +377,7 @@ class SupabaseService {
       final userId = _client.auth.currentUser?.id;
       if (userId == null) throw Exception('User not authenticated');
 
-      debugPrint('📋 SupabaseService: Fetching blocking rules for user $userId');
+      AppLogger.info('Fetching blocking rules for user $userId', tag: 'SupabaseService');
       final response = await _client
           .from('blocking_rules')
           .select()
@@ -388,10 +388,10 @@ class SupabaseService {
           .map((r) => BlockingRule.fromJson(r as Map<String, dynamic>))
           .toList();
       
-      debugPrint('✅ SupabaseService: Found ${rules.length} blocking rules');
+      AppLogger.info('Found ${rules.length} blocking rules', tag: 'SupabaseService');
       return rules;
     } catch (e) {
-      debugPrint('❌ SupabaseService: Get blocking rules failed: $e');
+      AppLogger.error('Get blocking rules failed: $e', tag: 'SupabaseService');
       throw Exception('Failed to get blocking rules: $e');
     }
   }
@@ -404,7 +404,7 @@ class SupabaseService {
     bool? enabled,
   }) async {
     try {
-      debugPrint('✏️  SupabaseService: Updating blocking rule $ruleId');
+      AppLogger.info('Updating blocking rule $ruleId', tag: 'SupabaseService');
       final updates = <String, dynamic>{
         if (appName != null) 'app_name': appName,
         if (schedule != null) 'schedule': schedule,
@@ -420,10 +420,10 @@ class SupabaseService {
           .single();
 
       final rule = BlockingRule.fromJson(response);
-      debugPrint('✅ SupabaseService: Blocking rule updated');
+      AppLogger.info('Blocking rule updated', tag: 'SupabaseService');
       return rule;
     } catch (e) {
-      debugPrint('❌ SupabaseService: Update blocking rule failed: $e');
+      AppLogger.error('Update blocking rule failed: $e', tag: 'SupabaseService');
       throw Exception('Failed to update blocking rule: $e');
     }
   }
@@ -431,11 +431,11 @@ class SupabaseService {
   /// Delete a blocking rule
   Future<void> deleteBlockingRule(String ruleId) async {
     try {
-      debugPrint('🗑️  SupabaseService: Deleting blocking rule $ruleId');
+      AppLogger.info('Deleting blocking rule $ruleId', tag: 'SupabaseService');
       await _client.from('blocking_rules').delete().eq('id', ruleId);
-      debugPrint('✅ SupabaseService: Blocking rule deleted');
+      AppLogger.info('Blocking rule deleted', tag: 'SupabaseService');
     } catch (e) {
-      debugPrint('❌ SupabaseService: Delete blocking rule failed: $e');
+      AppLogger.error('Delete blocking rule failed: $e', tag: 'SupabaseService');
       throw Exception('Failed to delete blocking rule: $e');
     }
   }
@@ -443,7 +443,7 @@ class SupabaseService {
   /// Toggle a blocking rule enabled/disabled
   Future<BlockingRule> toggleBlockingRule(String ruleId, bool enabled) async {
     try {
-      debugPrint('🔄 SupabaseService: Toggling blocking rule $ruleId to $enabled');
+      AppLogger.info('Toggling blocking rule $ruleId to $enabled', tag: 'SupabaseService');
       final response = await _client
           .from('blocking_rules')
           .update({
@@ -455,10 +455,10 @@ class SupabaseService {
           .single();
 
       final rule = BlockingRule.fromJson(response);
-      debugPrint('✅ SupabaseService: Blocking rule toggled');
+      AppLogger.info('Blocking rule toggled', tag: 'SupabaseService');
       return rule;
     } catch (e) {
-      debugPrint('❌ SupabaseService: Toggle blocking rule failed: $e');
+      AppLogger.error('Toggle blocking rule failed: $e', tag: 'SupabaseService');
       throw Exception('Failed to toggle blocking rule: $e');
     }
   }
@@ -480,7 +480,7 @@ class SupabaseService {
       final usageDate = date ?? DateTime.now();
       final dateKey = usageDate.toIso8601String().split('T').first;
 
-      debugPrint('📊 SupabaseService: Logging usage for $appName (${duration.inMinutes}m)');
+      AppLogger.info('Logging usage for $appName (${duration.inMinutes}m)', tag: 'SupabaseService');
 
       // Check if a record already exists for this app/date
       final existing = await _client
@@ -514,9 +514,9 @@ class SupabaseService {
         });
       }
 
-      debugPrint('✅ SupabaseService: App usage logged');
+      AppLogger.info('App usage logged', tag: 'SupabaseService');
     } catch (e) {
-      debugPrint('❌ SupabaseService: Log app usage failed: $e');
+      AppLogger.error('Log app usage failed: $e', tag: 'SupabaseService');
       // Don't throw for analytics - app should continue if logging fails
     }
   }
@@ -530,7 +530,7 @@ class SupabaseService {
       final userId = _client.auth.currentUser?.id;
       if (userId == null) throw Exception('User not authenticated');
 
-      debugPrint('🚫 SupabaseService: Logging blocked attempt for $appName');
+      AppLogger.info('Logging blocked attempt for $appName', tag: 'SupabaseService');
       await _client.from('blocked_attempts').insert({
         'user_id': userId,
         'rule_id': ruleId,
@@ -538,9 +538,9 @@ class SupabaseService {
         'blocked_at': DateTime.now().toIso8601String(),
       });
 
-      debugPrint('✅ SupabaseService: Blocked attempt logged');
+      AppLogger.info('Blocked attempt logged', tag: 'SupabaseService');
     } catch (e) {
-      debugPrint('❌ SupabaseService: Log blocked attempt failed: $e');
+      AppLogger.error('Log blocked attempt failed: $e', tag: 'SupabaseService');
       // Don't throw for analytics - app should continue if logging fails
     }
   }
@@ -552,7 +552,7 @@ class SupabaseService {
     required DateTime endDate,
   }) async {
     try {
-      debugPrint('📈 SupabaseService: Fetching analytics for $userId');
+      AppLogger.info('Fetching analytics for $userId', tag: 'SupabaseService');
       
       // Get total app usage
       final usageData = await _client
@@ -570,13 +570,13 @@ class SupabaseService {
           .gte('blocked_at', startDate.toIso8601String())
           .lte('blocked_at', endDate.toIso8601String());
 
-      debugPrint('✅ SupabaseService: Analytics fetched');
+      AppLogger.info('Analytics fetched', tag: 'SupabaseService');
       return {
         'usage': usageData,
         'blocked_attempts': blockedData,
       };
     } catch (e) {
-      debugPrint('❌ SupabaseService: Get analytics failed: $e');
+      AppLogger.error('Get analytics failed: $e', tag: 'SupabaseService');
       throw Exception('Failed to get analytics: $e');
     }
   }

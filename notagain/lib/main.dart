@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:forui/forui.dart';
 import 'package:provider/provider.dart';
+import 'core/logging/app_logger.dart';
 import 'core/theme/theme_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/settings_provider.dart';
@@ -10,6 +11,9 @@ import 'services/supabase_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize logger (before other setup)
+  AppLogger.init();
   
   // Load environment variables from .env file
   await dotenv.load();

@@ -15,8 +15,8 @@
 // This service communicates with native code via platform channels
 // and provides a unified interface for the app to enforce blocking rules.
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import '../core/logging/app_logger.dart';
 
 class NativeBlockingService {
   static const platform = MethodChannel('com.notagain.app/blocking');
@@ -30,7 +30,7 @@ class NativeBlockingService {
       ) ?? false;
       return result;
     } on PlatformException catch (e) {
-      debugPrint('❌ Failed to request Screen Time access: ${e.message}');
+      AppLogger.error('Failed to request Screen Time access: ${e.message}', tag: 'NativeBlockingService');
       return false;
     }
   }
@@ -43,7 +43,7 @@ class NativeBlockingService {
       ) ?? false;
       return result;
     } on PlatformException catch (e) {
-      debugPrint('❌ Failed to check Screen Time access: ${e.message}');
+      AppLogger.error('Failed to check Screen Time access: ${e.message}', tag: 'NativeBlockingService');
       return false;
     }
   }
@@ -66,7 +66,7 @@ class NativeBlockingService {
       ) ?? false;
       return result;
     } on PlatformException catch (e) {
-      debugPrint('❌ Failed to block app: ${e.message}');
+      AppLogger.error('Failed to block app: ${e.message}', tag: 'NativeBlockingService');
       return false;
     }
   }
@@ -86,7 +86,7 @@ class NativeBlockingService {
       ) ?? false;
       return result;
     } on PlatformException catch (e) {
-      debugPrint('❌ Failed to unblock app: ${e.message}');
+      AppLogger.error('Failed to unblock app: ${e.message}', tag: 'NativeBlockingService');
       return false;
     }
   }
@@ -100,7 +100,7 @@ class NativeBlockingService {
       ) ?? [];
       return result.cast<String>();
     } on PlatformException catch (e) {
-      debugPrint('❌ Failed to get blocked apps: ${e.message}');
+      AppLogger.error('Failed to get blocked apps: ${e.message}', tag: 'NativeBlockingService');
       return [];
     }
   }

@@ -8,6 +8,7 @@ library;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../core/logging/app_logger.dart';
 import '../models/user.dart';
 import '../models/result.dart';
 import '../services/supabase_service.dart';
@@ -42,13 +43,13 @@ class AuthProvider extends ChangeNotifier {
       if (currentUser != null) {
         _user = currentUser;
         _isAuthenticated = true;
-        debugPrint('✅ AuthProvider: Restored existing session for ${currentUser.email}');
+        AppLogger.info('Restored existing session for ${currentUser.email}', tag: 'AuthProvider');
       } else {
-        debugPrint('ℹ️  AuthProvider: No existing session found (this is normal on first launch)');
+        AppLogger.info('No existing session found (normal on first launch)', tag: 'AuthProvider');
       }
     } catch (e) {
       // It's normal to have no session on first launch or after logout
-      debugPrint('ℹ️  AuthProvider: Session check result: $e (this is normal)');
+      AppLogger.debug('Session check result: $e (normal)', tag: 'AuthProvider');
       _error = null; // Don't show this as an error to the user
     } finally {
       _isLoading = false;
@@ -67,7 +68,7 @@ class AuthProvider extends ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      debugPrint('🔐 AuthProvider: Starting signup for $email');
+      AppLogger.info('Starting signup for $email', tag: 'AuthProvider');
       final result = await _supabaseService.signup(
         email: email,
         password: password,
@@ -77,12 +78,12 @@ class AuthProvider extends ChangeNotifier {
       if (result.isSuccess && result.data != null) {
         _user = result.data;
         _isAuthenticated = true;
-        debugPrint('✅ AuthProvider: Signup successful for $email');
+        AppLogger.info('Signup successful for $email', tag: 'AuthProvider');
         notifyListeners();
         return Result.success(result.data!);
       } else {
         _error = result.error?.message ?? 'Signup failed';
-        debugPrint('❌ AuthProvider: Signup failed: $_error');
+        AppLogger.warning('Signup failed: $_error', tag: 'AuthProvider');
         notifyListeners();
         return Result.failure(
           result.error ?? AppError(message: 'Signup failed'),
@@ -104,7 +105,7 @@ class AuthProvider extends ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      debugPrint('🔐 AuthProvider: Starting login for $email');
+      AppLogger.info('Starting login for $email', tag: 'AuthProvider');
       final result = await _supabaseService.login(
         email: email,
         password: password,
@@ -113,12 +114,12 @@ class AuthProvider extends ChangeNotifier {
       if (result.isSuccess && result.data != null) {
         _user = result.data;
         _isAuthenticated = true;
-        debugPrint('✅ AuthProvider: Login successful for $email');
+        AppLogger.info('Login successful for $email', tag: 'AuthProvider');
         notifyListeners();
         return Result.success(result.data!);
       } else {
         _error = result.error?.message ?? 'Login failed';
-        debugPrint('❌ AuthProvider: Login failed: $_error');
+        AppLogger.warning('Login failed: $_error', tag: 'AuthProvider');
         notifyListeners();
         return Result.failure(
           result.error ?? AppError(message: 'Login failed'),
@@ -138,18 +139,18 @@ class AuthProvider extends ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      debugPrint('🔐 AuthProvider: Starting Apple Sign-In');
+      AppLogger.info('Starting Apple Sign-In', tag: 'AuthProvider');
       final result = await _supabaseService.signInWithApple();
 
       if (result.isSuccess && result.data != null) {
         _user = result.data;
         _isAuthenticated = true;
-        debugPrint('✅ AuthProvider: Apple Sign-In successful for ${result.data!.email}');
+        AppLogger.info('Apple Sign-In successful for ${result.data!.email}', tag: 'AuthProvider');
         notifyListeners();
         return Result.success(result.data!);
       } else {
         _error = result.error?.message ?? 'Apple Sign-In failed';
-        debugPrint('❌ AuthProvider: Apple Sign-In failed: $_error');
+        AppLogger.warning('Apple Sign-In failed: $_error', tag: 'AuthProvider');
         notifyListeners();
         return Result.failure(
           result.error ?? AppError(message: 'Apple Sign-In failed'),
@@ -169,18 +170,18 @@ class AuthProvider extends ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      debugPrint('🔐 AuthProvider: Starting Google Sign-In');
+      AppLogger.info('Starting Google Sign-In', tag: 'AuthProvider');
       final result = await _supabaseService.signInWithGoogle();
 
       if (result.isSuccess && result.data != null) {
         _user = result.data;
         _isAuthenticated = true;
-        debugPrint('✅ AuthProvider: Google Sign-In successful for ${result.data!.email}');
+        AppLogger.info('Google Sign-In successful for ${result.data!.email}', tag: 'AuthProvider');
         notifyListeners();
         return Result.success(result.data!);
       } else {
         _error = result.error?.message ?? 'Google Sign-In failed';
-        debugPrint('❌ AuthProvider: Google Sign-In failed: $_error');
+        AppLogger.warning('Google Sign-In failed: $_error', tag: 'AuthProvider');
         notifyListeners();
         return Result.failure(
           result.error ?? AppError(message: 'Google Sign-In failed'),
@@ -198,16 +199,16 @@ class AuthProvider extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      debugPrint('🔐 AuthProvider: Starting logout for ${_user?.email}');
+      AppLogger.info('Starting logout for ${_user?.email}', tag: 'AuthProvider');
       await _supabaseService.logout();
       
       _user = null;
       _isAuthenticated = false;
       _error = null;
-      debugPrint('✅ AuthProvider: Logout successful');
+      AppLogger.info('Logout successful', tag: 'AuthProvider');
     } catch (e) {
       _error = 'Logout failed: $e';
-      debugPrint('❌ AuthProvider: Logout exception: $e');
+      AppLogger.error('Logout failed: $e', tag: 'AuthProvider');
     } finally {
       _isLoading = false;
       notifyListeners();
