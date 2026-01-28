@@ -26,7 +26,11 @@ Current state: ✅ Secure, well-architected, tested for auth flow. Ready for tem
 
 ---
 
+<<<<<<< HEAD
 ### 2. Logger Abstraction (DONE)
+=======
+### 2. Logger Abstraction (DONE ✅)
+>>>>>>> 5fa7ae1 (added plan for onboarding & routing guards)
 **Why**: Current `debugPrint()` with emoji is dev-only. Production apps need structured logging.
 
 **Actions**:
@@ -214,4 +218,9 @@ To start a new project from NotAgain:
 
 ---
 
+<<<<<<< HEAD
 File created from the analysis run. Use this backlog to create issues or PRs for each item.
+=======
+File created from the analysis run. Use this backlog to create issues or PRs for each item.
+
+>>>>>>> 5fa7ae1 (added plan for onboarding & routing guards)
