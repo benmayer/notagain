@@ -19,12 +19,75 @@ Transform the onboarding from a placeholder into a functional multi-step flow th
 
 ---
 
+## Research Findings
+
+### 1. Naming Conventions ✅
+**Verified**: The codebase uses **snake_case for database fields** and **camelCase for Dart properties**.
+
+- Database columns: `full_name`, `avatar_url`, `created_at`, `last_sign_in_at`
+- Dart model properties: `fullName`, `avatarUrl`, `createdAt`, `lastSignInAt`
+
+**Decision**: Add `onboarding_completed` (snake_case) to database, map to `onboardingCompleted` (camelCase) in Dart User model.
+
+### 2. File Picker Components ✅
+**Verified**: Forui **does NOT have file picker or camera/gallery components**.
+
+Found in Forui:
+- `FAvatar` - Display avatar with image/fallback
+- `FPicker` - iOS-style scroll wheel picker (for dates/times, not files)
+
+**Decision**: Use native Flutter plugin **`image_picker`** (official Flutter package) for camera/gallery access. Added to `pubspec.yaml` dependencies.
+
+### 3. Abandon Handling ✅
+**Verified**: Current logout flow clears session and navigates to Welcome screen.
+
+From `auth_provider.dart`:
+- `logout()` clears `_user`, sets `_isAuthenticated = false`, calls `SupabaseService.logout()` which signs out from Supabase
+- Router redirects unauthenticated users to `/` (Welcome screen)
+
+**Decision**: When user taps "Back" on onboarding, **do NOT logout**—just pause progress and save state to SharedPreferences. User remains authenticated but with incomplete onboarding, so on app restart they're redirected back to `/onboarding`.
+
+### 4. Avatar Display & Upload ✅
+**Verified**: Forui has `FAvatar` widget for displaying avatars.
+
+From Forui docs:
+```dart
+FAvatar(
+  image: NetworkImage('https://example.com/profile.jpg'),
+  fallback: const Text('JD'),
+  size: 40.0,
+)
+```
+
+**Decision**: 
+- Use `FAvatar` to **display** profile pictures throughout the app
+- Use `image_picker` package for **capturing/uploading** pictures
+- Use Supabase Storage with dedicated `avatars` bucket (public read access)
+
+### 5. SSO Avatar Extraction ✅
+**Verified**: Apple/Google SSO already extract `full_name` from `userMetadata`, but **avatar URLs are NOT currently extracted**.
+
+**Decision**: Auto-extract avatar URLs from SSO metadata:
+- Google SSO: Check `userMetadata['picture']`
+- Apple SSO: Check `userMetadata['picture']` (if available)
+- If avatar found, save to user profile and skip Step 2 automatically
+
+---
+
 ## Implementation Steps
 
 ### 1. Database & User Model Updates
-- Add `onboarding_completed` (BOOLEAN DEFAULT false) column to Supabase `profiles` table
-- Update [lib/models/user.dart](lib/models/user.dart) to add `onboardingCompleted` bool field and update `fromJson()`/`toJson()` methods
+- Add `onboarding_completed` (BOOLEAN DEFAULT false) column to Supabase `profiles` table via Supabase SQL Editor
+- Update [lib/models/user.dart](lib/models/user.dart):
+  - Add `onboardingCompleted` bool field (camelCase for Dart)
+  - Update `copyWith()` method to include new field
+  - Add JSON serialization if needed
 - Update `SupabaseService._createUserProfile()` to initialize `onboarding_completed = false` for new users
+- Create Supabase Storage bucket `avatars` with:
+  - Public read access (so avatar URLs work without auth)
+  - Authenticated write access (only logged-in users can upload)
+  - File size limit: 5MB
+  - Allowed MIME types: image/jpeg, image/png, image/webp
 
 ### 2. Create Onboarding Provider
 - Create [lib/providers/onboarding_provider.dart](lib/providers/onboarding_provider.dart) as ChangeNotifier tracking:
@@ -39,8 +102,15 @@ Transform the onboarding from a placeholder into a functional multi-step flow th
 - Modify [lib/screens/auth/signup_screen.dart](lib/screens/auth/signup_screen.dart):
   - Remove name field from signup form (email & password only)
   - Redirect to `/onboarding` instead of `/home` after successful signup
-- Update SSO handlers (Apple/Google) to also redirect to `/onboarding`
-  - For SSO users with provided name, consider skipping directly to Step 2 or pre-populating Step 1
+- Update [lib/services/supabase_service.dart](lib/services/supabase_service.dart) SSO handlers:
+  - **Apple Sign-In**: Extract `userMetadata['full_name']` (already done) and `userMetadata['picture']` (new)
+  - **Google Sign-In**: Extract `userMetadata['full_name']` (already done) and `userMetadata['picture']` (new)
+  - Save extracted avatar URL to `avatar_url` in user profile
+  - If both name and avatar are present from SSO, set `onboarding_completed = true` immediately
+- Update [lib/providers/auth_provider.dart](lib/providers/auth_provider.dart):
+  - Change SSO redirect logic to check `user.onboardingCompleted`:
+    - If `true` (both name & avatar from SSO), redirect to `/home`
+    - If `false` (missing name or avatar), redirect to `/onboarding`
 
 ### 4. Build Onboarding Screens
 - Update [lib/screens/onboarding/onboarding_screen.dart](lib/screens/onboarding/onboarding_screen.dart) or create separate step screens:
@@ -53,12 +123,16 @@ Transform the onboarding from a placeholder into a functional multi-step flow th
   - Uses `FTextFormField` and `FButton` from Forui
   
   **Step 2** (`/onboarding/step-2`):
-  - Camera/gallery file picker for profile picture
+  - Camera/gallery file picker using `image_picker` package
+  - Show current avatar preview using `FAvatar` widget (if SSO provided one)
   - Progress indicator showing "Step 2 of 2"
   - "Skip" button (allows progression without picture, still marks onboarding as completed)
   - "Back" button to return to Step 1
   - "Finish" or "Complete" button after picture selected
-  - File picker widget (native or Forui-compatible)
+  - Upload to Supabase Storage `avatars` bucket:
+    - File name: `{userId}_{timestamp}.{ext}`
+    - Update `avatar_url` in user profile with public URL
+  - Use `FButton` for actions, `FAvatar` for preview
 
 ### 5. Create Routing Guards
 - Create [lib/routing/route_guards.dart](lib/routing/route_guards.dart) with guard function:
@@ -130,47 +204,61 @@ Transform the onboarding from a placeholder into a functional multi-step flow th
 
 ---
 
-## Design Decisions to Finalize
+## Design Decisions (Confirmed)
 
-### 1. SSO Auto-Skip Logic
-**Question**: If user signs in with Google/Apple and name is provided, should we:
-- **Option A**: Auto-complete Step 1 with SSO name and skip directly to Step 2?
-- **Option B**: Always require manual name confirmation on Step 1?
-- **Option C**: Pre-populate Step 1 name but require "Next" tap to proceed?
+### 1. SSO Auto-Skip Logic ✅
+**Confirmed**: Auto-extract avatar from SSO metadata.
 
-**Recommendation**: Option A (auto-skip) for best UX; name is provided by SSO provider, so trust it and skip Step 1.
+- If user signs in with Google/Apple and name is provided:
+  - Auto-complete Step 1 with SSO name and skip directly to Step 2
+- If user signs in with Google/Apple and both name AND picture are provided:
+  - Auto-complete both steps, set `onboarding_completed = true`, redirect to `/home`
+- SSO avatar extraction:
+  - Google: `userMetadata['picture']` (commonly available)
+  - Apple: `userMetadata['picture']` (rarely available, fallback to Step 2)
 
-### 2. Abandon Handling
-**Question**: When user taps "Back" on onboarding, should we:
-- **Option A**: Show confirmation dialog ("Discard setup?" with "Continue", "Discard" buttons)?
-- **Option B**: Silently pause and resume from same step on re-login?
-- **Option C**: Soft warning toast ("Progress saved") and resume from last step?
+### 2. Abandon Handling ✅
+**Confirmed**: Pause onboarding, do NOT logout.
 
-**Recommendation**: Option A (confirmation dialog) for clarity; makes it explicit that onboarding isn't complete if discarded.
+- When user taps "Back" on onboarding:
+  - Silently pause and save progress to SharedPreferences
+  - User remains authenticated but `onboarding_completed = false`
+  - On app restart or re-login, router redirects back to `/onboarding`
+- Example: User enters name, taps back → on re-login returns to Step 1 with name pre-filled from SharedPreferences
 
-### 3. Picture Upload Storage
-**Question**: Should profile pictures be:
-- **Option A**: Uploaded to Supabase Storage (tightly integrated, same auth)?
-- **Option B**: Uploaded to Firebase Storage (more established)?
-- **Option C**: Stored locally only, synced later (MVP approach)?
+### 3. Picture Upload Storage ✅
+**Confirmed**: Create dedicated `avatars` bucket in Supabase Storage.
 
-**Recommendation**: Option A (Supabase Storage) for simplicity in a template; aligns with existing backend.
+- Bucket configuration:
+  - Name: `avatars`
+  - Public read access (URLs work without auth)
+  - Authenticated write access (only logged-in users can upload)
+  - File size limit: 5MB
+  - Allowed types: image/jpeg, image/png, image/webp
+- File naming: `{userId}_{timestamp}.{ext}` for uniqueness
+- URL saved to `avatar_url` field in `profiles` table
 
-### 4. Google Avatar Extraction
-**Question**: Google SSO returns `picture` URL in metadata—should we:
-- **Option A**: Auto-populate Step 2 preview with Google's avatar?
-- **Option B**: Require user to capture/upload their own photo for consistency?
-- **Option C**: Show Google avatar as default but allow replacement?
+### 4. File Picker Implementation ✅
+**Confirmed**: Use `image_picker` package (official Flutter plugin).
 
-**Recommendation**: Option C (show Google avatar as preview/default) to streamline UX while allowing user control.
+- Forui does NOT provide file picker components
+- `image_picker` supports:
+  - Camera capture
+  - Gallery selection
+  - Image compression/quality options
+  - Cross-platform (iOS, Android, Web)
+- Display avatars with Forui's `FAvatar` widget
 
-### 5. Progress Persistence
-**Question**: Should step progress be stored:
-- **Option A**: In SharedPreferences (fast resume, no sync)?
-- **Option B**: In database (multi-device consistency)?
-- **Option C**: Both (local cache + sync)?
+### 5. Progress Persistence ✅
+**Confirmed**: Store progress in SharedPreferences.
 
-**Recommendation**: Option A (SharedPreferences) matching existing template pattern (theme persistence); aligns with MVP approach.
+- Step progress stored locally (fast resume, no sync needed)
+- Handles app restarts or crashes during onboarding
+- Keys:
+  - `onboarding_current_step` (1 or 2)
+  - `onboarding_name_draft` (temporary name storage)
+  - `onboarding_picture_path` (local file path before upload)
+- Clear SharedPreferences data after onboarding completion
 
 ---
 
@@ -180,7 +268,11 @@ Transform the onboarding from a placeholder into a functional multi-step flow th
 - [ ] [lib/providers/onboarding_provider.dart](lib/providers/onboarding_provider.dart) — Onboarding state management
 - [ ] [lib/routing/route_guards.dart](lib/routing/route_guards.dart) — Guard functions
 - [ ] [docs/ROUTING.md](docs/ROUTING.md) — Routing patterns documentation
-- [ ] Database migration for `onboarding_completed` column (Supabase)
+- [ ] Database migration for `onboarding_completed` column (Supabase SQL Editor)
+- [ ] Supabase Storage bucket `avatars` (via Supabase Dashboard)
+
+### New Dependencies
+- [x] `image_picker: ^1.0.7` — Camera/gallery file picker (added to pubspec.yaml)
 
 ### Files to Modify
 - [ ] [lib/models/user.dart](lib/models/user.dart) — Add `onboardingCompleted` field
@@ -234,8 +326,21 @@ Transform the onboarding from a placeholder into a functional multi-step flow th
 
 ---
 
-## Notes for Refinement
-- Confirm naming conventions match existing codebase (e.g., `onboarding_completed` vs. `setupComplete`)
-- Verify Forui has file picker components or if native plugin needed
-- Clarify whether "abandon" should fully log user out or just pause onboarding
-- Define default picture handling (Forui avatar component or custom widget?)
+## Implementation Checklist
+
+### Pre-Implementation
+- [x] Research Forui components (FAvatar, no file picker)
+- [x] Verify naming conventions (snake_case DB, camelCase Dart)
+- [x] Confirm abandon behavior (pause, not logout)
+- [x] Select file picker solution (image_picker package)
+- [x] Choose storage solution (Supabase Storage avatars bucket)
+- [x] Decide SSO avatar extraction strategy (auto-extract from metadata)
+- [x] Add image_picker dependency to pubspec.yaml
+
+### Database Setup
+- [ ] Create `onboarding_completed` column in Supabase `profiles` table
+- [ ] Create `avatars` storage bucket in Supabase Dashboard
+- [ ] Configure bucket policies (public read, auth write, 5MB limit)
+
+### Ready for Implementation
+All research complete. Proceed with implementation steps 1-8 above.

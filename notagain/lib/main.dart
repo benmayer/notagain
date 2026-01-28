@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'core/logging/app_logger.dart';
 import 'core/theme/theme_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/onboarding_provider.dart';
 import 'providers/settings_provider.dart';
 import 'routing/app_router.dart';
 import 'services/supabase_service.dart';
@@ -48,12 +49,16 @@ void main() async {
   final settingsProvider = SettingsProvider();
   await settingsProvider.init();
 
+  // Initialize onboarding provider
+  final onboardingProvider = OnboardingProvider();
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => themeProvider),
         ChangeNotifierProvider(create: (_) => authProvider),
         ChangeNotifierProvider(create: (_) => settingsProvider),
+        ChangeNotifierProvider(create: (_) => onboardingProvider),
       ],
       child: const MyApp(),
     ),

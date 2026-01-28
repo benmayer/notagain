@@ -1,8 +1,7 @@
 /// App Router Configuration
 /// 
 /// Defines all routes and navigation for the app using go_router.
-/// Routes are protected by authentication state.
-library;
+/// Routes are protected by authentication state and onboarding completion.
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -15,7 +14,8 @@ import '../screens/auth/signup_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/start/start_screen.dart';
 import '../screens/profile/profile_screen.dart';
-import '../screens/onboarding/onboarding_screen.dart';
+import '../screens/onboarding/onboarding_step1_screen.dart';
+import '../screens/onboarding/onboarding_step2_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/settings/settings_stubs.dart';
 
@@ -25,23 +25,45 @@ class AppRouter {
     redirect: (context, state) {
       final authProvider = context.read<AuthProvider>();
       final isAuthenticated = authProvider.isAuthenticated;
+      final user = authProvider.user;
+      final onboardingCompleted = user?.onboardingCompleted ?? false;
 
-      // If not authenticated, allow access to welcome, login, signup screens
-      if (!isAuthenticated && (state.matchedLocation == '/' || state.matchedLocation == '/login' || state.matchedLocation == '/signup')) {
-        return null;
-      }
-
-      // If not authenticated and trying to access protected routes, redirect to welcome
+      // Not authenticated - allow access to auth screens
       if (!isAuthenticated) {
-        return '/';
+        if (state.matchedLocation == '/' || 
+            state.matchedLocation == '/login' || 
+            state.matchedLocation == '/signup') {
+          return null; // Allow access
+        }
+        return '/'; // Redirect to welcome
       }
 
-      // If authenticated and trying to access auth routes, redirect to home
-      if (isAuthenticated && (state.matchedLocation == '/' || state.matchedLocation == '/login' || state.matchedLocation == '/signup')) {
-        return '/home';
+      // Authenticated but onboarding not complete
+      if (isAuthenticated && !onboardingCompleted) {
+        // Allow access to onboarding screens
+        if (state.matchedLocation == '/onboarding' || 
+            state.matchedLocation == '/onboarding/step2') {
+          return null;
+        }
+        // Redirect all other routes to onboarding
+        return '/onboarding';
       }
 
-      return null;
+      // Authenticated and onboarded - redirect from auth screens to home
+      if (isAuthenticated && onboardingCompleted) {
+        if (state.matchedLocation == '/' || 
+            state.matchedLocation == '/login' || 
+            state.matchedLocation == '/signup') {
+          return '/home';
+        }
+        // Don't allow access to onboarding screens if already completed
+        if (state.matchedLocation == '/onboarding' || 
+            state.matchedLocation == '/onboarding/step2') {
+          return '/home';
+        }
+      }
+
+      return null; // Allow access
     },
     routes: <RouteBase>[
       GoRoute(
@@ -99,9 +121,16 @@ class AppRouter {
       GoRoute(
         path: '/onboarding',
         name: 'onboarding',
-        builder: (BuildContext context, GoRouterState state) {
-          return const OnboardingScreen();
-        },
+         builder: (BuildContext context, GoRouterState state) {
+           return const OnboardingStep1Screen();
+         },
+       ),
+       GoRoute(
+         path: '/onboarding/step2',
+         name: 'onboarding-step2',
+         builder: (BuildContext context, GoRouterState state) {
+           return const OnboardingStep2Screen();
+         },
       ),
       GoRoute(
         path: '/settings',

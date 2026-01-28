@@ -10,6 +10,7 @@ class User {
   final String? avatarUrl;
   final DateTime createdAt;
   final DateTime? lastSignInAt;
+  final bool onboardingCompleted;
 
   User({
     required this.id,
@@ -18,6 +19,7 @@ class User {
     this.avatarUrl,
     required this.createdAt,
     this.lastSignInAt,
+    this.onboardingCompleted = false,
   });
 
   /// Create a copy of this user with optional fields replaced
@@ -28,6 +30,7 @@ class User {
     String? avatarUrl,
     DateTime? createdAt,
     DateTime? lastSignInAt,
+    bool? onboardingCompleted,
   }) {
     return User(
       id: id ?? this.id,
@@ -36,12 +39,13 @@ class User {
       avatarUrl: avatarUrl ?? this.avatarUrl,
       createdAt: createdAt ?? this.createdAt,
       lastSignInAt: lastSignInAt ?? this.lastSignInAt,
+      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
     );
   }
 
   @override
   String toString() {
-    return 'User(id: $id, email: $email, fullName: $fullName)';
+    return 'User(id: $id, email: $email, fullName: $fullName, onboardingCompleted: $onboardingCompleted)';
   }
 }
 

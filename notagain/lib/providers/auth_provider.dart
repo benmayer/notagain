@@ -43,6 +43,31 @@ class AuthProvider extends ChangeNotifier {
       if (currentUser != null) {
         _user = currentUser;
         _isAuthenticated = true;
+        
+        // Fetch profile to get onboarding_completed status
+        try {
+          final profile = await _supabaseService.getUserProfile(currentUser.id);
+          AppLogger.info('Profile loaded: $profile', tag: 'AuthProvider');
+          if (profile != null) {
+            final onboardingCompleted = profile['onboarding_completed'] as bool? ?? false;
+            final fullName = profile['full_name'] as String?;
+            final avatarUrl = profile['avatar_url'] as String?;
+            
+            AppLogger.info('Profile data: onboardingCompleted=$onboardingCompleted, fullName=$fullName', tag: 'AuthProvider');
+            
+            _user = currentUser.copyWith(
+              onboardingCompleted: onboardingCompleted,
+              fullName: fullName,
+              avatarUrl: avatarUrl,
+            );
+            
+            AppLogger.info('User updated with onboarding status: ${_user?.onboardingCompleted}', tag: 'AuthProvider');
+          }
+        } catch (e) {
+          AppLogger.warning('Failed to load profile data: $e', tag: 'AuthProvider');
+          // Continue with basic user info if profile fetch fails
+        }
+        
         AppLogger.info('Restored existing session for ${currentUser.email}', tag: 'AuthProvider');
       } else {
         AppLogger.info('No existing session found (normal on first launch)', tag: 'AuthProvider');
@@ -114,6 +139,26 @@ class AuthProvider extends ChangeNotifier {
       if (result.isSuccess && result.data != null) {
         _user = result.data;
         _isAuthenticated = true;
+        
+        // Fetch profile to get onboarding_completed status
+        try {
+          final profile = await _supabaseService.getUserProfile(_user!.id);
+          if (profile != null) {
+            final onboardingCompleted = profile['onboarding_completed'] as bool? ?? false;
+            final fullName = profile['full_name'] as String?;
+            final avatarUrl = profile['avatar_url'] as String?;
+            
+            _user = _user!.copyWith(
+              onboardingCompleted: onboardingCompleted,
+              fullName: fullName,
+              avatarUrl: avatarUrl,
+            );
+          }
+        } catch (e) {
+          AppLogger.warning('Failed to load profile data during login: $e', tag: 'AuthProvider');
+          // Continue with basic user info if profile fetch fails
+        }
+        
         AppLogger.info('Login successful for $email', tag: 'AuthProvider');
         notifyListeners();
         return Result.success(result.data!);
@@ -213,6 +258,13 @@ class AuthProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Update user data (used after onboarding completion)
+  void updateUser(User updatedUser) {
+    _user = updatedUser;
+    AppLogger.info('User data updated: onboarding=${updatedUser.onboardingCompleted}', tag: 'AuthProvider');
+    notifyListeners();
   }
 
   /// Clear error message

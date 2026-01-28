@@ -12,6 +12,7 @@
 /// other parts of the application.
 library;
 
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/logging/app_logger.dart';
 import '../models/user.dart' as app_user;
@@ -92,11 +93,12 @@ class SupabaseService {
 
       if (response.user != null) {
         AppLogger.info('User created in auth.users: ${response.user!.id}', tag: 'SupabaseService');
-        // Create user profile in database
+        // Create user profile in database (onboarding not completed for email/password signup)
         await _createUserProfile(
           userId: response.user!.id,
           email: email,
           fullName: fullName,
+          onboardingCompleted: false,
         );
 
         final user = app_user.User(
@@ -104,6 +106,7 @@ class SupabaseService {
           email: response.user!.email ?? '',
           fullName: fullName,
           createdAt: _parseDateTime(response.user!.createdAt),
+          onboardingCompleted: false,
         );
         return Result.success(user);
       }
@@ -179,6 +182,8 @@ class SupabaseService {
     required String userId,
     required String email,
     String? fullName,
+    String? avatarUrl,
+    bool onboardingCompleted = false,
   }) async {
     try {
       AppLogger.info('Creating profile for user $userId', tag: 'SupabaseService');
@@ -186,6 +191,8 @@ class SupabaseService {
         'id': userId,
         'email': email,
         'full_name': fullName,
+        if (avatarUrl != null) 'avatar_url': avatarUrl,
+        'onboarding_completed': onboardingCompleted,
         'created_at': DateTime.now().toIso8601String(),
       });
       AppLogger.info('Profile created successfully', tag: 'SupabaseService');
@@ -208,19 +215,36 @@ class SupabaseService {
       final authUser = _client.auth.currentUser;
       if (authUser != null) {
         AppLogger.info('Apple Sign-In successful for ${authUser.email}', tag: 'SupabaseService');
+        
+        // Extract SSO metadata
+        final fullName = authUser.userMetadata?['full_name'] as String?;
+        final avatarUrl = authUser.userMetadata?['picture'] as String?;
+        
+        // If both name and avatar provided, onboarding is complete
+        final onboardingCompleted = fullName != null && avatarUrl != null;
+        
         // Create user profile in database if it doesn't exist
         await _createUserProfile(
           userId: authUser.id,
           email: authUser.email ?? '',
-          fullName: authUser.userMetadata?['full_name'] as String?,
+          fullName: fullName,
+          avatarUrl: avatarUrl,
+          onboardingCompleted: onboardingCompleted,
+        );
+        
+        AppLogger.info(
+          'Apple SSO profile created: name=$fullName, avatar=${avatarUrl != null}, onboarding=$onboardingCompleted',
+          tag: 'SupabaseService',
         );
         
         return Result.success(
           app_user.User(
             id: authUser.id,
             email: authUser.email ?? '',
-            fullName: authUser.userMetadata?['full_name'] as String?,
+            fullName: fullName,
+            avatarUrl: avatarUrl,
             createdAt: _parseDateTime(authUser.createdAt),
+            onboardingCompleted: onboardingCompleted,
           ),
         );
       }
@@ -256,19 +280,36 @@ class SupabaseService {
       final authUser = _client.auth.currentUser;
       if (authUser != null) {
         AppLogger.info('Google Sign-In successful for ${authUser.email}', tag: 'SupabaseService');
+        
+        // Extract SSO metadata
+        final fullName = authUser.userMetadata?['full_name'] as String?;
+        final avatarUrl = authUser.userMetadata?['picture'] as String?;
+        
+        // If both name and avatar provided, onboarding is complete
+        final onboardingCompleted = fullName != null && avatarUrl != null;
+        
         // Create user profile in database if it doesn't exist
         await _createUserProfile(
           userId: authUser.id,
           email: authUser.email ?? '',
-          fullName: authUser.userMetadata?['full_name'] as String?,
+          fullName: fullName,
+          avatarUrl: avatarUrl,
+          onboardingCompleted: onboardingCompleted,
+        );
+        
+        AppLogger.info(
+          'Google SSO profile created: name=$fullName, avatar=${avatarUrl != null}, onboarding=$onboardingCompleted',
+          tag: 'SupabaseService',
         );
         
         return Result.success(
           app_user.User(
             id: authUser.id,
             email: authUser.email ?? '',
-            fullName: authUser.userMetadata?['full_name'] as String?,
+            fullName: fullName,
+            avatarUrl: avatarUrl,
             createdAt: _parseDateTime(authUser.createdAt),
+            onboardingCompleted: onboardingCompleted,
           ),
         );
       }
@@ -328,13 +369,33 @@ class SupabaseService {
       await _client.from('profiles').update({
         'full_name': fullName,
         if (avatarUrl != null) 'avatar_url': avatarUrl,
-        'updated_at': DateTime.now().toIso8601String(),
       }).eq('id', userId);
       
       AppLogger.info('Profile updated successfully', tag: 'SupabaseService');
     } catch (e) {
       AppLogger.error('Update profile failed: $e', tag: 'SupabaseService');
       throw Exception('Failed to update profile: $e');
+    }
+  }
+
+  /// Update onboarding completion status
+  Future<void> updateOnboardingStatus({
+    required String userId,
+    required bool completed,
+  }) async {
+    try {
+      AppLogger.info(
+        'Updating onboarding status for user $userId: $completed',
+        tag: 'SupabaseService',
+      );
+      await _client.from('profiles').update({
+        'onboarding_completed': completed,
+      }).eq('id', userId);
+      
+      AppLogger.info('Onboarding status updated successfully', tag: 'SupabaseService');
+    } catch (e) {
+      AppLogger.error('Update onboarding status failed: $e', tag: 'SupabaseService');
+      throw Exception('Failed to update onboarding status: $e');
     }
   }
 
@@ -578,6 +639,41 @@ class SupabaseService {
     } catch (e) {
       AppLogger.error('Get analytics failed: $e', tag: 'SupabaseService');
       throw Exception('Failed to get analytics: $e');
+    }
+  }
+
+  // ============================================================================
+  // STORAGE METHODS
+  // ============================================================================
+
+  /// Upload avatar image to Supabase Storage
+  /// Requires 'avatars' bucket to exist in Supabase Storage
+  /// Returns the public URL of the uploaded file
+  Future<String> uploadAvatar({
+    required String userId,
+    required String filePath,
+  }) async {
+    try {
+      AppLogger.info('Uploading avatar for user $userId', tag: 'SupabaseService');
+      
+      final file = File(filePath);
+      final fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final storagePath = '$userId/$fileName';
+
+      // Upload to storage
+      await _client.storage.from('avatars').upload(
+        storagePath,
+        file,
+      );
+
+      // Get public URL
+      final publicUrl = _client.storage.from('avatars').getPublicUrl(storagePath);
+      
+      AppLogger.info('Avatar uploaded successfully: $publicUrl', tag: 'SupabaseService');
+      return publicUrl;
+    } catch (e) {
+      AppLogger.error('Avatar upload failed: $e', tag: 'SupabaseService');
+      throw Exception('Failed to upload avatar: $e');
     }
   }
 }

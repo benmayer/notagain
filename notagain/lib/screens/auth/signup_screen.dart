@@ -20,7 +20,6 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
-  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -44,7 +43,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -169,14 +167,14 @@ class _SignupScreenState extends State<SignupScreen> {
     final result = await authProvider.signup(
       email: _emailController.text.trim(),
       password: _passwordController.text,
-      fullName: _nameController.text.trim(),
+      fullName: null, // Name will be collected in onboarding
     );
 
     if (!mounted) return;
 
     if (result.isSuccess) {
-      // Navigate to home screen via go_router
-      context.go('/home');
+      // Navigate to onboarding (not home) for email/password signup
+      context.go('/onboarding');
     } else {
       // Show Forui toast notification
       showFToast(
@@ -199,6 +197,8 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!mounted) return;
 
     if (result.isSuccess) {
+      // Router will handle redirect based on onboardingCompleted status
+      // If onboarding complete, goes to /home; otherwise /onboarding
       context.go('/home');
     } else {
       showFToast(
@@ -221,6 +221,8 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!mounted) return;
 
     if (result.isSuccess) {
+      // Router will handle redirect based on onboarding Completed status
+      // If onboarding complete, goes to /home; otherwise /onboarding
       context.go('/home');
     } else {
       showFToast(
@@ -255,21 +257,6 @@ class _SignupScreenState extends State<SignupScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                    // Full Name Field
-                    FTextFormField(
-                      control: FTextFieldControl.managed(controller: _nameController),
-                      label: const Text('Full Name'),
-                      hint: 'John Doe',
-                      validator: (value) {
-                        if (value?.isEmpty ?? true) {
-                          return 'Name is required';
-                        }
-                        return null;
-                      },
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                    ),
-                    SizedBox(height: AppConstants.standardGap),
-
                     // Email Field
                     FTextFormField.email(
                       control: FTextFieldControl.managed(controller: _emailController),
