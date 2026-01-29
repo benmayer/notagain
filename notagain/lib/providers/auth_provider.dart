@@ -101,11 +101,12 @@ class AuthProvider extends ChangeNotifier {
       );
 
       if (result.isSuccess && result.data != null) {
-        _user = result.data;
+        // Ensure onboardingCompleted is false for new signups
+        _user = result.data!.copyWith(onboardingCompleted: false);
         _isAuthenticated = true;
         AppLogger.info('Signup successful for $email', tag: 'AuthProvider');
         notifyListeners();
-        return Result.success(result.data!);
+        return Result.success(_user!);
       } else {
         _error = result.error?.message ?? 'Signup failed';
         AppLogger.warning('Signup failed: $_error', tag: 'AuthProvider');
@@ -160,8 +161,15 @@ class AuthProvider extends ChangeNotifier {
         }
         
         AppLogger.info('Login successful for $email', tag: 'AuthProvider');
+        debugPrint('🔍 [AUTH] Login success - Building result object');
+        debugPrint('   User: $_user');
+        debugPrint('   User.onboardingCompleted: ${_user?.onboardingCompleted}');
         notifyListeners();
-        return Result.success(result.data!);
+        final successResult = Result.success(_user!);
+        debugPrint('🔍 [AUTH] Result.isSuccess: ${successResult.isSuccess}');
+        debugPrint('   Result.data: ${successResult.data}');
+        debugPrint('   Result.data?.onboardingCompleted: ${successResult.data?.onboardingCompleted}');
+        return successResult;
       } else {
         _error = result.error?.message ?? 'Login failed';
         AppLogger.warning('Login failed: $_error', tag: 'AuthProvider');
@@ -177,7 +185,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   /// Sign in with Apple
-  /// Returns Result<User> with structured error handling
+  /// Returns Result&lt;User&gt; with structured error handling
   Future<Result<User>> signInWithApple() async {
     try {
       _isLoading = true;
@@ -192,7 +200,7 @@ class AuthProvider extends ChangeNotifier {
         _isAuthenticated = true;
         AppLogger.info('Apple Sign-In successful for ${result.data!.email}', tag: 'AuthProvider');
         notifyListeners();
-        return Result.success(result.data!);
+        return Result.success(_user!);
       } else {
         _error = result.error?.message ?? 'Apple Sign-In failed';
         AppLogger.warning('Apple Sign-In failed: $_error', tag: 'AuthProvider');
@@ -208,7 +216,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   /// Sign in with Google
-  /// Returns Result<User> with structured error handling
+  /// Returns Result&lt;User&gt; with structured error handling
   Future<Result<User>> signInWithGoogle() async {
     try {
       _isLoading = true;
@@ -223,7 +231,7 @@ class AuthProvider extends ChangeNotifier {
         _isAuthenticated = true;
         AppLogger.info('Google Sign-In successful for ${result.data!.email}', tag: 'AuthProvider');
         notifyListeners();
-        return Result.success(result.data!);
+        return Result.success(_user!);
       } else {
         _error = result.error?.message ?? 'Google Sign-In failed';
         AppLogger.warning('Google Sign-In failed: $_error', tag: 'AuthProvider');

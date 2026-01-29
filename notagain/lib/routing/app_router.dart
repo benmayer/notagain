@@ -1,9 +1,4 @@
-/// App Router Configuration
-/// 
-/// Defines all routes and navigation for the app using go_router.
-/// Routes are protected by authentication state and onboarding completion.
-
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -18,15 +13,20 @@ import '../screens/onboarding/onboarding_step1_screen.dart';
 import '../screens/onboarding/onboarding_step2_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/settings/settings_stubs.dart';
+import 'cupertino_page_route.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/',
+    observers: [_NavigationLogger()],
+    debugLogDiagnostics: false,
     redirect: (context, state) {
       final authProvider = context.read<AuthProvider>();
       final isAuthenticated = authProvider.isAuthenticated;
       final user = authProvider.user;
       final onboardingCompleted = user?.onboardingCompleted ?? false;
+
+      debugPrint('🔄 [REDIRECT] location=${state.matchedLocation}, auth=$isAuthenticated, onboardingComplete=$onboardingCompleted');
 
       // Not authenticated - allow access to auth screens
       if (!isAuthenticated) {
@@ -43,9 +43,11 @@ class AppRouter {
         // Allow access to onboarding screens
         if (state.matchedLocation == '/onboarding' || 
             state.matchedLocation == '/onboarding/step2') {
+          debugPrint('   → Allow /onboarding (user incomplete)');
           return null;
         }
         // Redirect all other routes to onboarding
+        debugPrint('   → Redirect to /onboarding (user incomplete)');
         return '/onboarding';
       }
 
@@ -54,14 +56,18 @@ class AppRouter {
         if (state.matchedLocation == '/' || 
             state.matchedLocation == '/login' || 
             state.matchedLocation == '/signup') {
+          debugPrint('   → Redirect from auth screen to /home (onboarded)');
           return '/home';
         }
         // Don't allow access to onboarding screens if already completed
         if (state.matchedLocation == '/onboarding' || 
             state.matchedLocation == '/onboarding/step2') {
+          debugPrint('   → Redirect from onboarding to /home (already complete)');
           return '/home';
         }
       }
+
+      debugPrint('   → Allow (no redirect needed)');
 
       return null; // Allow access
     },
@@ -69,22 +75,31 @@ class AppRouter {
       GoRoute(
         path: '/',
         name: 'welcome',
-        builder: (BuildContext context, GoRouterState state) {
-          return const WelcomeScreen();
+        pageBuilder: (BuildContext context, GoRouterState state) {
+          return CupertinoPage<void>(
+            name: 'welcome',
+            child: const WelcomeScreen(),
+          );
         },
       ),
       GoRoute(
         path: '/login',
         name: 'login',
-        builder: (BuildContext context, GoRouterState state) {
-          return const LoginScreen();
+        pageBuilder: (BuildContext context, GoRouterState state) {
+          return CupertinoPageWithGesture<void>(
+            name: 'login',
+            child: const LoginScreen(),
+          );
         },
       ),
       GoRoute(
         path: '/signup',
         name: 'signup',
-        builder: (BuildContext context, GoRouterState state) {
-          return const SignupScreen();
+        pageBuilder: (BuildContext context, GoRouterState state) {
+          return CupertinoPageWithGesture<void>(
+            name: 'signup',
+            child: const SignupScreen(),
+          );
         },
       ),
       ShellRoute(
@@ -121,68 +136,123 @@ class AppRouter {
       GoRoute(
         path: '/onboarding',
         name: 'onboarding',
-         builder: (BuildContext context, GoRouterState state) {
-           return const OnboardingStep1Screen();
-         },
-       ),
-       GoRoute(
-         path: '/onboarding/step2',
-         name: 'onboarding-step2',
-         builder: (BuildContext context, GoRouterState state) {
-           return const OnboardingStep2Screen();
-         },
+        pageBuilder: (BuildContext context, GoRouterState state) {
+          return CupertinoPageWithGesture<void>(
+            name: 'onboarding',
+            child: const OnboardingStep1Screen(),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/onboarding/step2',
+        name: 'onboarding-step2',
+        pageBuilder: (BuildContext context, GoRouterState state) {
+          return CupertinoPageWithGesture<void>(
+            name: 'onboarding-step2',
+            child: const OnboardingStep2Screen(),
+          );
+        },
       ),
       GoRoute(
         path: '/settings',
         name: 'settings',
-        builder: (BuildContext context, GoRouterState state) {
-          return const SettingsScreen();
+        pageBuilder: (BuildContext context, GoRouterState state) {
+          return CupertinoPageWithGesture<void>(
+            name: 'settings',
+            child: const SettingsScreen(),
+          );
         },
         routes: [
           GoRoute(
             path: 'device-settings',
             name: 'device-settings',
-            builder: (BuildContext context, GoRouterState state) {
-              return const DeviceSettingsScreen();
+            pageBuilder: (BuildContext context, GoRouterState state) {
+              return CupertinoPageWithGesture<void>(
+                name: 'device-settings',
+                child: const DeviceSettingsScreen(),
+              );
             },
           ),
           GoRoute(
             path: 'help-support',
             name: 'help-support',
-            builder: (BuildContext context, GoRouterState state) {
-              return const HelpSupportScreen();
+            pageBuilder: (BuildContext context, GoRouterState state) {
+              return CupertinoPageWithGesture<void>(
+                name: 'help-support',
+                child: const HelpSupportScreen(),
+              );
             },
           ),
           GoRoute(
             path: 'faqs',
             name: 'faqs',
-            builder: (BuildContext context, GoRouterState state) {
-              return const FAQsScreen();
+            pageBuilder: (BuildContext context, GoRouterState state) {
+              return CupertinoPageWithGesture<void>(
+                name: 'faqs',
+                child: const FAQsScreen(),
+              );
             },
           ),
           GoRoute(
             path: 'feedback',
             name: 'feedback',
-            builder: (BuildContext context, GoRouterState state) {
-              return const FeedbackScreen();
+            pageBuilder: (BuildContext context, GoRouterState state) {
+              return CupertinoPageWithGesture<void>(
+                name: 'feedback',
+                child: const FeedbackScreen(),
+              );
             },
           ),
           GoRoute(
             path: 'terms-of-service',
             name: 'terms-of-service',
-            builder: (BuildContext context, GoRouterState state) {
-              return const TermsOfServiceScreen();
+            pageBuilder: (BuildContext context, GoRouterState state) {
+              return CupertinoPageWithGesture<void>(
+                name: 'terms-of-service',
+                child: const TermsOfServiceScreen(),
+              );
             },
           ),
           GoRoute(
             path: 'privacy-policy',
             name: 'privacy-policy',
-            builder: (BuildContext context, GoRouterState state) {
-              return const PrivacyPolicyScreen();
+            pageBuilder: (BuildContext context, GoRouterState state) {
+              return CupertinoPageWithGesture<void>(
+                name: 'privacy-policy',
+                child: const PrivacyPolicyScreen(),
+              );
             },
           ),
         ],
       ),
     ],
   );
+}
+
+/// Navigation logger for debugging route transitions
+class _NavigationLogger extends NavigatorObserver {
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    final routeName = route.settings.name ?? 'unknown';
+    final routeType = route.runtimeType.toString();
+    final isCupertinoRoute = routeType.contains('Cupertino');
+    
+    debugPrint('🔵 [NAV] Pushed: $routeName (from: ${previousRoute?.settings.name ?? 'none'})');
+    debugPrint('   Route type: $routeType');
+    debugPrint('   Has cupertino transitions: $isCupertinoRoute');
+    
+    if (route is CupertinoPageRoute) {
+      debugPrint('   ✅ CupertinoPageRoute - swipe gesture enabled');
+    } else if (isCupertinoRoute) {
+      debugPrint('   ✅ Cupertino-based route - swipe gesture should work');
+    } else {
+      debugPrint('   ⚠️ NOT a Cupertino route - swipe gesture may NOT work');
+    }
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    final routeName = route.settings.name ?? 'unknown';
+    debugPrint('🔴 [NAV] Popped: $routeName (back to: ${previousRoute?.settings.name ?? 'none'})');
+  }
 }

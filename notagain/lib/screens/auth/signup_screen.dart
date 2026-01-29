@@ -172,9 +172,14 @@ class _SignupScreenState extends State<SignupScreen> {
 
     if (!mounted) return;
 
+    debugPrint('🔍 [SIGNUP] Email signup result - isSuccess: ${result.isSuccess}');
+    debugPrint('   result.data: ${result.data}');
+    debugPrint('   result.error: ${result.error}');
+
     if (result.isSuccess) {
-      // Navigate to onboarding (not home) for email/password signup
-      context.go('/onboarding');
+      // New signups always go to onboarding (onboardingCompleted is false)
+      debugPrint('🔄 [SIGNUP] Pushing to /onboarding (new account)');
+      context.push('/onboarding');
     } else {
       // Show Forui toast notification
       showFToast(
@@ -196,10 +201,22 @@ class _SignupScreenState extends State<SignupScreen> {
 
     if (!mounted) return;
 
+    debugPrint('🔍 [SIGNUP] Apple signin result - isSuccess: ${result.isSuccess}');
+    debugPrint('   result.data: ${result.data}');
+
     if (result.isSuccess) {
-      // Router will handle redirect based on onboardingCompleted status
-      // If onboarding complete, goes to /home; otherwise /onboarding
-      context.go('/home');
+      // Check if onboarding is complete and navigate accordingly
+      final user = result.data;
+      final onboardingCompleted = user?.onboardingCompleted ?? false;
+      debugPrint('🔍 [SIGNUP] User: ${user?.email}, onboardingCompleted=$onboardingCompleted');
+      
+      if (onboardingCompleted) {
+        debugPrint('🔄 [SIGNUP] Navigating to /home (onboarding complete)');
+        context.go('/home');
+      } else {
+        debugPrint('🔄 [SIGNUP] Pushing to /onboarding (onboarding incomplete)');
+        context.push('/onboarding');
+      }
     } else {
       showFToast(
         context: context,
@@ -220,10 +237,22 @@ class _SignupScreenState extends State<SignupScreen> {
 
     if (!mounted) return;
 
+    debugPrint('🔍 [SIGNUP] Google signin result - isSuccess: ${result.isSuccess}');
+    debugPrint('   result.data: ${result.data}');
+
     if (result.isSuccess) {
-      // Router will handle redirect based on onboarding Completed status
-      // If onboarding complete, goes to /home; otherwise /onboarding
-      context.go('/home');
+      // Check if onboarding is complete and navigate accordingly
+      final user = result.data;
+      final onboardingCompleted = user?.onboardingCompleted ?? false;
+      debugPrint('🔍 [SIGNUP] User: ${user?.email}, onboardingCompleted=$onboardingCompleted');
+      
+      if (onboardingCompleted) {
+        debugPrint('🔄 [SIGNUP] Navigating to /home (onboarding complete)');
+        context.go('/home');
+      } else {
+        debugPrint('🔄 [SIGNUP] Pushing to /onboarding (onboarding incomplete)');
+        context.push('/onboarding');
+      }
     } else {
       showFToast(
         context: context,
@@ -245,7 +274,7 @@ class _SignupScreenState extends State<SignupScreen> {
       header: FHeader.nested(
         title: const Text('Create Account'),
         prefixes: [
-          FHeaderAction.back(onPress: () => context.go('/')),
+          FHeaderAction.back(onPress: () => context.pop()),
         ],
       ),
       child: SafeArea(

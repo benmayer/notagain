@@ -1,6 +1,5 @@
-/// Onboarding Step 1 - Name Input
-/// 
-/// User enters their full name (required, not skippable)
+// Onboarding Step 1 - Name Input
+// User enters their full name (required, not skippable)
 
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
@@ -141,7 +140,7 @@ class _OnboardingStep1ScreenState extends State<OnboardingStep1Screen> {
       await provider.nextStep();
 
       if (mounted) {
-        context.go('/onboarding/step2');
+        context.push('/onboarding/step2');
       }
     } catch (e) {
       AppLogger.error('Step 1: Error during next: $e', tag: 'OnboardingStep1');

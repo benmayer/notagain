@@ -43,23 +43,196 @@ class AuthProvider extends ChangeNotifier {
 }
 ```
 
-### Navigation & Routing
-**Pattern**: Auth-gated routing via GoRouter redirect. Welcome screen (`/`) is the entry point for unauthenticated users; authenticated users auto-redirected from auth screens to `/home`.
+### Navigation & Routing (Stack-Based with iOS Swipe-Back Gesture Support)
 
-**Auth Flow**:
-```
-Welcome (/) 
-  ├─ "Get Started" → Sign Up (/signup)
-  └─ "Sign In" → Login (/login)
-     └─ Back button → Welcome (/)
+**Critical Concept**: NotAgain uses **stack-based navigation** with iOS native swipe-back gestures enabled. This requires careful use of `push()` vs `go()`.
+
+#### Navigation Methods & When to Use
+
+**`context.push(routePath)`** - **USE FOR SCREEN-TO-SCREEN NAVIGATION**
+- **Purpose**: Adds route to the navigation stack (maintains history)
+- **Use when**: Navigating between screens within a flow (auth → settings, step 1 → step 2)
+- **Enables**: iOS swipe-back gesture + back button consistency
+- **Example**: Welcome → Login, Login → Signup, Settings → Device Settings, Onboarding Step 1 → Step 2
+```dart
+// ✅ CORRECT - Screen transitions
+onPress: () => context.push('/login'),  // Maintains stack for swipe-back
 ```
 
-**Key Points**:
-- Initial route: `/` (Welcome screen, not `/home`)
-- Routes defined in `lib/routing/app_router.dart`
-- Bottom nav (Home, Start, Profile) implemented in `lib/screens/home/home_screen.dart`
-- Auth screens use `FHeader.nested()` with back button for navigation consistency
-- Non-root screens (Settings and sub-screens) have back navigation via `FHeaderAction.back()`
+**`context.go(routePath)`** - **USE FOR STATE-CHANGE NAVIGATION ONLY**
+- **Purpose**: Replaces current route (doesn't maintain stack history)
+- **Use when**: Authentication state changes (login complete, logout, signup with OAuth)
+- **Enables**: Auth redirect logic without stack pollution
+- **Example**: Successful login → Home, Logout → Welcome, Signup → Onboarding
+```dart
+// ✅ CORRECT - Auth state changes
+context.go('/home'),        // Replace current route with home
+context.go('/onboarding'),  // Replace current route with onboarding
+context.go('/'),            // Logout - return to welcome
+```
+
+**`context.pop()`** - **USE FOR BACK BUTTON + SWIPE CONSISTENCY**
+- **Purpose**: Removes current route from stack (reverse of push)
+- **Use when**: Back buttons, dismiss dialogs
+- **Ensures**: Back button matches swipe gesture behavior
+- **Example**: All back buttons in non-root screens
+```dart
+// ✅ CORRECT - Back button using pop
+FHeaderAction.back(onPress: () => context.pop()),
+```
+
+#### Route Configuration Rules
+
+**Root/Initial Routes** (use `CupertinoPage` - NO swipe gesture):
+```dart
+GoRoute(
+  path: '/',
+  name: 'welcome',
+  pageBuilder: (BuildContext context, GoRouterState state) {
+    return CupertinoPage<void>(  // ← Plain CupertinoPage, no gesture
+      name: 'welcome',
+      child: const WelcomeScreen(),
+    );
+  },
+),
+```
+
+**Nested/Modal Routes** (use `CupertinoPageWithGesture` - HAS swipe gesture):
+```dart
+GoRoute(
+  path: '/login',
+  name: 'login',
+  pageBuilder: (BuildContext context, GoRouterState state) {
+    return CupertinoPageWithGesture<void>(  // ← Enables iOS swipe-back
+      name: 'login',
+      child: const LoginScreen(),
+    );
+  },
+),
+```
+
+#### Navigation Pattern by Screen Type
+
+**Auth Screens** (Welcome, Login, Signup):
+- Welcome → Login/Signup: **USE `push()`** (adds to stack)
+- Login → Signup (or vice versa): **USE `push()`** (adds to stack)
+- Back button on Login/Signup: **USE `pop()`** (removes from stack)
+- Successful login/signup with incomplete onboarding: **USE `push('/onboarding')`** (adds to stack, critical for UI updates)
+- Successful login/signup with complete onboarding: **USE `go('/home')`** (state change - replaces route)
+
+**⚠️ CRITICAL: Navigation to `/onboarding` after Auth Success**
+When login or signup completes and onboarding is incomplete, **always use `push('/onboarding')` NOT `go('/onboarding')`**. GoRouter has issues with `go()` when called from within a route that's being built. Using `push()` properly adds the route to the stack and allows the UI to update correctly. The redirect logic will allow the navigation even though `push()` adds to the stack.
+
+**Onboarding Screens**:
+- Step 1 → Step 2: **USE `push()`** (adds to stack)
+- Back button on Step 2: **USE `pop()`** (removes from stack)
+- Complete onboarding: **USE `go('/home')`** (state change)
+
+**Settings Screens**:
+- Settings → Sub-screen (Device, Help, FAQs, etc.): **USE `push()`** (adds to stack)
+- Back button on sub-screens: **USE `pop()`** (removes from stack)
+- Logout from Settings: **USE `go('/')`** (state change - return to welcome)
+
+**Bottom Nav Screens** (Home, Start, Profile):
+- Never use navigation between them - use bottom nav switching
+- Settings access: **USE `push('/settings')`** (adds to stack above nav)
+
+#### Critical Rules
+
+1. **Never `go()` for screen-to-screen navigation** - causes swipe gesture to crash (empty stack)
+2. **Always `pop()` on back buttons** - ensures consistency with swipe gesture
+3. **Always disable swipe on root route** - root screen can't swipe back to nothing
+4. **Always enable swipe on nested screens** - provides iOS-native UX
+5. **Use `go()` only for auth state changes to home** - login/signup → home when onboarding complete
+6. **Use `push()` to onboarding after auth** - GoRouter has issues with `go()` from within route builders
+7. **Auth handlers must check onboarding status** - Return user with updated profile data including onboarding status
+
+#### Critical Fixes (Verified Working)
+
+**Issue: Login/Signup navigation to onboarding not working**
+- **Cause**: AuthProvider returning old `result.data` instead of updated `_user` with profile data
+- **Fix**: Return `_user!` instead of `result.data!` from auth methods
+- **Evidence**: User object must have `fullName` set from profile fetch for handler to work correctly
+
+**Issue: Navigation to /onboarding freezes UI**
+- **Cause**: `context.go('/onboarding')` fails when called from route being built (GoRouter limitation)
+- **Fix**: Use `context.push('/onboarding')` instead for onboarding navigation
+- **Why**: `push()` adds to stack, allowing UI updates; redirect logic allows it despite stack-based routing
+
+#### Testing Navigation Flow
+
+```
+Welcome (/)[CupertinoPage - no swipe]
+  ├─ push → Login (/login)[CupertinoPageWithGesture]
+  │   ├─ swipe back → Welcome ✅
+  │   ├─ pop() button → Welcome ✅
+  │   ├─ push('/onboarding') on login incomplete → Onboarding ✅
+  │   └─ go('/home') on login complete → Home ✅
+  │
+  └─ push → Signup (/signup)[CupertinoPageWithGesture]
+      ├─ swipe back → Welcome ✅
+      ├─ pop() button → Welcome ✅
+      └─ push('/onboarding') on signup → Onboarding ✅
+
+Onboarding Step 1 (/onboarding)[CupertinoPageWithGesture]
+  ├─ push → Onboarding Step 2 (/onboarding/step2)[CupertinoPageWithGesture]
+  │   ├─ pop() → Step 1 ✅
+  │   └─ Complete → go('/home') ✅
+  │
+  └─ go('/home') on completion → Home ✅
+
+Home/Start/Profile [inside ShellRoute - no swipe needed]
+  ├─ push → Settings → Device Settings [CupertinoPageWithGesture]
+  │   └─ pop() → Settings → pop() → Home ✅
+  │
+````
+  └─ Logout: go('/') → Welcome ✅
+```
+
+### Auth Handler Pattern (Screen Layer)
+
+**When handling login/signup results in screen handlers, ALWAYS:**
+
+1. **Check onboarding status** and navigate to correct screen:
+```dart
+void _handleLogin(AuthProvider authProvider) async {
+  final result = await authProvider.login(email: email, password: password);
+  if (!mounted) return;
+
+  if (result.isSuccess) {
+    final user = result.data;
+    final onboardingCompleted = user?.onboardingCompleted ?? false;
+    
+    if (onboardingCompleted) {
+      context.go('/home');      // ← Use go() for state change
+    } else {
+      context.push('/onboarding');  // ← Use push() for onboarding! Critical
+    }
+  } else {
+    // Show error
+  }
+}
+```
+
+2. **Why `push()` not `go()` for onboarding?**
+   - GoRouter has issues calling `go()` from within a route being built
+   - `push()` adds to stack and allows UI updates properly
+   - Redirect logic still enforces auth/onboarding rules
+   - Pattern: `push()` for onboarding flows, `go()` for home/auth complete
+
+3. **Return complete user object from AuthProvider**
+```dart
+// ❌ WRONG - Returns old Supabase object without profile data
+return Result.success(result.data!);
+
+// ✅ CORRECT - Returns _user with full profile data
+_user = _user!.copyWith(
+  onboardingCompleted: onboardingCompleted,
+  fullName: fullName,
+  avatarUrl: avatarUrl,
+);
+return Result.success(_user!);
+```
 
 ### Error & Loading States
 **Pattern**: Providers expose `isLoading`, `error` fields; screens display loading spinners via `authProvider.isLoading`, errors via SnackBar:
@@ -70,7 +243,7 @@ ScaffoldMessenger.of(context).showSnackBar(
 ```
 
 ### Theming
-**Pattern**: Pure Forui theming with `FThemes.slate.light`/`.dark`. **NO Material theming** — Forui is the single source of truth for all UI styling.
+`**Pattern**: Pure Forui theming with `FThemes.slate.light`/`.dark`. **NO Material theming** — Forui is the single source of truth for all UI styling.
 - `ThemeProvider` in `lib/providers/` manages theme state and persistence via SharedPreferences
 - `lib/main.dart` wraps app with `FAnimatedTheme` (from Forui's theme switcher) and `FToaster` (toast notifications)
 - Theme switching: `context.read<ThemeProvider>().setDarkMode(true/false)` triggers FAnimatedTheme transition

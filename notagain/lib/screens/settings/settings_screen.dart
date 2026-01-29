@@ -38,7 +38,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     await context.read<AuthProvider>().logout();
                     await Future.delayed(const Duration(milliseconds: 100));
                     if (context.mounted) {
-                      context.go('/login');
+                      context.go('/');
                     }
                   },
             style: FButtonStyle.destructive(),

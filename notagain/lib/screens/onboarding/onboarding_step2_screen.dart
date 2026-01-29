@@ -1,6 +1,5 @@
-/// Onboarding Step 2 - Profile Picture Upload
-/// 
-/// User optionally uploads a profile picture (skippable)
+// Onboarding Step 2 - Profile Picture Upload
+// User optionally uploads a profile picture (skippable)
 
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -66,7 +65,9 @@ class _OnboardingStep2ScreenState extends State<OnboardingStep2Screen> {
     }
   }
 
+  // ignore_for_file: use_build_context_synchronously
   Future<void> _handleCompleteOnboarding({bool skipPicture = false}) async {
+    final nav = context;
     final provider = context.read<OnboardingProvider>();
     final authProvider = context.read<AuthProvider>();
     
@@ -77,9 +78,9 @@ class _OnboardingStep2ScreenState extends State<OnboardingStep2Screen> {
       if (user == null) {
         if (mounted) {
           showFToast(
-            context: context,
+            context: nav,
             alignment: FToastAlignment.bottomCenter,
-            icon: Icon(FIcons.triangleAlert, color: context.theme.colors.primary),
+            icon: Icon(FIcons.triangleAlert, color: nav.theme.colors.primary),
             title: const Text('Error'),
             description: const Text('User not found'),
             duration: AppConstants.toastDuration,
@@ -110,9 +111,9 @@ class _OnboardingStep2ScreenState extends State<OnboardingStep2Screen> {
           AppLogger.error('Failed to upload avatar: $e', tag: 'OnboardingStep2');
           if (mounted) {
             showFToast(
-              context: context,
+              context: nav,
               alignment: FToastAlignment.bottomCenter,
-              icon: Icon(FIcons.triangleAlert, color: context.theme.colors.primary),
+              icon: Icon(FIcons.triangleAlert, color: nav.theme.colors.primary),
               title: const Text('Error'),
               description: const Text('Failed to upload photo'),
               duration: AppConstants.toastDuration,
@@ -139,7 +140,7 @@ class _OnboardingStep2ScreenState extends State<OnboardingStep2Screen> {
       await provider.resetProgress();
 
       if (mounted) {
-        context.go('/home');
+        nav.go('/home');
       }
     } catch (e) {
       AppLogger.error(
@@ -148,9 +149,9 @@ class _OnboardingStep2ScreenState extends State<OnboardingStep2Screen> {
       );
       if (mounted) {
         showFToast(
-          context: context,
+          context: nav,
           alignment: FToastAlignment.bottomCenter,
-          icon: Icon(FIcons.triangleAlert, color: context.theme.colors.primary),
+          icon: Icon(FIcons.triangleAlert, color: nav.theme.colors.primary),
           title: const Text('Error'),
           description: const Text('Failed to complete onboarding'),
           duration: AppConstants.toastDuration,
@@ -175,9 +176,10 @@ class _OnboardingStep2ScreenState extends State<OnboardingStep2Screen> {
                 onPress: provider.isLoading
                     ? null
                     : () async {
+                        final nav = context;
                         await provider.previousStep();
                         if (mounted) {
-                          context.go('/onboarding');
+                          nav.go('/onboarding');
                         }
                       },
               ),

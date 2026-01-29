@@ -76,6 +76,15 @@ class MyApp extends StatelessWidget {
           title: 'NotAgain',
           localizationsDelegates: FLocalizations.localizationsDelegates,
           supportedLocales: FLocalizations.supportedLocales,
+          theme: ThemeData(
+            platform: TargetPlatform.iOS,
+            pageTransitionsTheme: const PageTransitionsTheme(
+              builders: {
+                TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+                TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+              },
+            ),
+          ),
           builder: (_, child) => FAnimatedTheme(
             data: themeProvider.currentTheme,
             child: FToaster(child: child!),

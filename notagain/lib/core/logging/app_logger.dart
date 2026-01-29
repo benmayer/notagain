@@ -35,13 +35,7 @@ class AppLogger {
   static void init({LogLevel minLevel = LogLevel.debug}) {
     _minLevel = minLevel;
     _logger = Logger(
-      printer: PrettyPrinter(
-        methodCount: 2,
-        errorMethodCount: 8,
-        lineLength: 120,
-        colors: true,
-        printEmojis: true,
-      ),
+      printer: SimplePrinter(colors: true),
       level: _logLevelToLoggerLevel(minLevel),
     );
   }

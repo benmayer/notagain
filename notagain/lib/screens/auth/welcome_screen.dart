@@ -66,13 +66,13 @@ class WelcomeScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 FButton(
-                  onPress: () => context.go('/signup'),
+                  onPress: () => context.push('/signup'),
                   style: FButtonStyle.primary(),
                   child: const Text('Get Started'),
                 ),
                 SizedBox(height: AppConstants.smallGap),
                 FButton(
-                  onPress: () => context.go('/login'),
+                  onPress: () => context.push('/login'),
                   style: FButtonStyle.secondary(),
                   child: const Text('Sign In'),
                 ),

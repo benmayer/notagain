@@ -204,7 +204,7 @@ class SupabaseService {
   }
 
   /// Sign in with Apple
-  /// Returns Result<User> with structured error handling
+  /// Returns Result&lt;User&gt; with structured error handling
   Future<Result<app_user.User>> signInWithApple() async {
     try {
       AppLogger.info('Starting Apple Sign-In', tag: 'SupabaseService');
@@ -269,7 +269,7 @@ class SupabaseService {
   }
 
   /// Sign in with Google
-  /// Returns Result<User> with structured error handling
+  /// Returns Result&lt;User&gt; with structured error handling
   Future<Result<app_user.User>> signInWithGoogle() async {
     try {
       AppLogger.info('Starting Google Sign-In', tag: 'SupabaseService');
