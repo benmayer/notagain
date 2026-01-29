@@ -1,7 +1,3 @@
-// Settings Screen
-// 
-// User settings and preferences management using pure Forui components
-
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
@@ -11,8 +7,15 @@ import '../../core/theme/theme_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/settings_provider.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool _isLoggingOut = false;
 
   void _handleLogout(BuildContext context) {
     showFDialog<void>(
@@ -22,19 +25,22 @@ class SettingsScreen extends StatelessWidget {
         body: const Text('Are you sure you want to sign out?'),
         actions: [
           FButton(
-            onPress: () => Navigator.pop(dialogContext),
+            onPress: _isLoggingOut ? null : () => Navigator.pop(dialogContext),
             style: FButtonStyle.outline(),
             child: const Text('Cancel'),
           ),
           FButton(
-            onPress: () async {
-              Navigator.pop(dialogContext);
-              await context.read<AuthProvider>().logout();
-              await Future.delayed(const Duration(milliseconds: 100));
-              if (context.mounted) {
-                context.go('/login');
-              }
-            },
+            onPress: _isLoggingOut
+                ? null
+                : () async {
+                    setState(() => _isLoggingOut = true);
+                    Navigator.pop(dialogContext);
+                    await context.read<AuthProvider>().logout();
+                    await Future.delayed(const Duration(milliseconds: 100));
+                    if (context.mounted) {
+                      context.go('/login');
+                    }
+                  },
             style: FButtonStyle.destructive(),
             child: const Text('Sign Out'),
           ),
@@ -181,9 +187,10 @@ class SettingsScreen extends StatelessWidget {
             FDivider(),
             // Logout Button
             FButton(
-              onPress: () => _handleLogout(context),
+              onPress: _isLoggingOut ? null : () => _handleLogout(context),
               style: FButtonStyle.destructive(),
-              child: const Text('Sign Out'),
+              prefix: _isLoggingOut ? const FCircularProgress() : null,
+              child: Text(_isLoggingOut ? 'Signing Out...' : 'Sign Out'),
             ),
             SizedBox(height: AppConstants.standardGap),
           ],

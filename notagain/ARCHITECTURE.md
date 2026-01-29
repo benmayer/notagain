@@ -16,24 +16,28 @@ notagain/
 │   │   │   ├── theme_provider.dart  # Theme state management (Provider) with FThemeData
 │   │   │   └── README.md            # Theming documentation
 │   │   ├── constants/               # App-wide constants (API keys, timeouts, etc)
+│   │   ├── logging/
+│   │   │   └── app_logger.dart      # Structured logging with AppLogger.info/warning/error
 │   │   └── utils/                   # Utility functions (formatters, validators, etc)
 │   ├── routing/
-│   │   └── app_router.dart          # GoRouter config with ShellRoute for main nav, auth-gated redirect logic
+│   │   └── app_router.dart          # GoRouter config with ShellRoute for main nav, auth-gated redirect logic, flattened onboarding routes
 │   ├── screens/                     # Top-level screens organized by feature
 │   │   ├── auth/
 │   │   │   ├── welcome_screen.dart  # Entry point - Sign In or Get Started
 │   │   │   ├── login_screen.dart    # Email/password sign in with social auth
 │   │   │   └── signup_screen.dart   # Email/password registration
 │   │   ├── onboarding/
-│   │   │   └── onboarding_screen.dart # Post-auth permissions setup (future)
+│   │   │   ├── onboarding_step1_screen.dart # Step 1: Name input, saves to database
+│   │   │   └── onboarding_step2_screen.dart # Step 2: Avatar upload (optional, skippable)
 │   │   ├── home/
 │   │   │   └── home_screen.dart     # Dashboard content, Entry for the user journey
 │   │   ├── start/
 │   │   │   └── start_screen.dart    # Blocking rules management content only
 │   │   ├── profile/
-│   │   │   └── profile_screen.dart  # User profile (placeholder)
+│   │   │   ├── profile_screen.dart  # User profile display
+│   │   │   └── README.md            # Profile feature documentation
 │   │   └── settings/
-│   │       ├── settings_screen.dart # User settings with FTileGroup sections
+│   │       ├── settings_screen.dart # User settings with FTileGroup sections, logout
 │   │       └── settings_stubs.dart  # Settings sub-screens (Device, Help, FAQs, etc)
 │   ├── widgets/                     # Reusable UI components
 │   │   ├── auth/                    # Auth-specific widgets (form fields, buttons)
@@ -46,8 +50,10 @@ notagain/
 │   │   ├── blocking_rule.dart       # Blocking rule model
 │   │   └── result.dart              # Generic Result<T> and AppError types for standardized responses
 │   ├── providers/                   # State management (Provider pattern)
-│   │   ├── auth_provider.dart       # Authentication state, returns Result<User>
-│   │   ├── theme_provider.dart      # Light/dark mode state
+│   │   ├── auth_provider.dart       # Authentication state, returns Result<User>, fetches profile on login
+│   │   ├── onboarding_provider.dart # Multi-step onboarding state with SharedPreferences persistence
+│   │   ├── settings_provider.dart   # User settings and preferences
+```
 │   │   └── settings_provider.dart   # User preferences state
 │   ├── services/                    # Backend and platform services
 │   │   ├── supabase_service.dart    # Supabase integration (auth, CRUD, analytics), returns Result<T>

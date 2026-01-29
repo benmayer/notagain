@@ -12,15 +12,24 @@ NotAgain is a Flutter app for screen time management that blocks distracting app
 
 ### Core Layers
 - **Presentation**: Screens in `lib/screens/` + reusable widgets in `lib/widgets/` (organized by feature)
-- **State Management**: Provider pattern with dedicated providers in `lib/providers/` (auth, theme, settings, usage, rules, analytics)
-- **Services**: `SupabaseService` (backend auth/CRUD) and `NativeBlockingService` (iOS Screen Time API)
+- **State Management**: Provider pattern with dedicated providers in `lib/providers/` (auth, theme, settings, onboarding, usage, rules, analytics)
+- **Services**: `SupabaseService` (backend auth/CRUD/storage) and `NativeBlockingService` (iOS Screen Time API)
 - **Models**: DTOs in `lib/models/` (User, blocking rules, app usage, etc.)
+- **Routing**: Flattened routes in `lib/routing/app_router.dart` with auth-gated redirects
 
 ### Key Entry Points
 - `lib/main.dart` - App bootstrap with MultiProvider setup, theme initialization
-- `lib/routing/app_router.dart` - GoRouter config with auth redirect logic
-- `lib/providers/auth_provider.dart` - Central auth state holder
+- `lib/routing/app_router.dart` - GoRouter config with auth redirect logic (see ARCHITECTURE.md for route structure)
+- `lib/providers/auth_provider.dart` - Central auth state holder, fetches profile on login
 - `lib/services/supabase_service.dart` - Backend bridge (singleton pattern)
+
+### Finding Features in Codebase
+When unsure where a feature is located, refer to `ARCHITECTURE.md` for the complete project structure. Key conventions:
+- **Screens**: Feature-based folders under `lib/screens/` (auth, onboarding, home, start, profile, settings)
+- **Providers**: State management in `lib/providers/` (one provider per domain: auth, theme, onboarding, settings)
+- **Widgets**: Reusable components under `lib/widgets/` organized by screen name (auth, home, profile, start, settings)
+- **Services**: Backend integration in `lib/services/` (SupabaseService for DB/Auth/Storage, NativeBlockingService for iOS APIs)
+- **Models**: Data structures in `lib/models/` (User, AuthResponse, Result<T>, AppError, etc.)
 
 ## Critical Patterns & Conventions
 
