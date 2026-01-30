@@ -91,8 +91,10 @@ flutter:
   uses-material-design: false
 
   # Add assets to the application
-  # assets:
-  #   - .env  # .env is loaded at runtime via flutter_dotenv, not as an asset
+  assets:
+    - .env
+  # Note: .env is .gitignored (credentials safe in git) but included as asset for flutter_dotenv.
+  # Each developer creates their own .env locally. In production, env vars come from CI/CD.
 
   # To add additional assets to your application, add an assets section, like this:
   # assets:

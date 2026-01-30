@@ -17,6 +17,8 @@ void main() async {
   AppLogger.init();
   
   // Load environment variables from .env file
+  // .env is bundled as an asset for flutter_dotenv to load
+  // (developers create .env locally; CI/CD provides env vars instead)
   await dotenv.load();
   
   final supabaseUrl = dotenv.env['SUPABASE_URL'];

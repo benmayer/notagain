@@ -5,9 +5,11 @@
 *.swp
 .DS_Store
 .atom/
+.build/
 .buildlog/
 .history
 .svn/
+.swiftpm/
 migrate_working_dir/
 
 # IntelliJ related
@@ -30,6 +32,7 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+devtools_options.yaml
 
 # Symbolication related
 app.*.symbols
@@ -50,7 +53,9 @@ app.*.map.json
 **/ios/**/Flutter/Flutter.podspec
 **/ios/**/Flutter/Flutter.xcframework
 **/ios/**/Flutter/generated.xcconfig
+**/ios/**/Flutter/Generated.xcconfig
 **/ios/**/Runner.xcworkspace/
+**/ios/Pods/
 
 # Android/Gradle
 **/android/**/gradle-wrapper.jar
@@ -94,3 +99,4 @@ app.*.map.json
 
 # Exceptions to above rules
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
+ios/Flutter/flutter_export_environment.sh
