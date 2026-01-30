@@ -19,12 +19,12 @@ NotAgain is a Flutter app for screen time management that blocks distracting app
 
 ### Key Entry Points
 - `lib/main.dart` - App bootstrap with MultiProvider setup, theme initialization
-- `lib/routing/app_router.dart` - GoRouter config with auth redirect logic (see ARCHITECTURE.md for route structure)
+- `lib/routing/app_router.dart` - GoRouter config with auth redirect logic (see `documentation/ARCHITECTURE.md`)
 - `lib/providers/auth_provider.dart` - Central auth state holder, fetches profile on login
 - `lib/services/supabase_service.dart` - Backend bridge (singleton pattern)
 
 ### Finding Features in Codebase
-When unsure where a feature is located, refer to `ARCHITECTURE.md` for the complete project structure. Key conventions:
+When unsure where a feature is located, refer to `documentation/ARCHITECTURE.md` for the complete project structure. Key conventions:
 - **Screens**: Feature-based folders under `lib/screens/` (auth, onboarding, home, start, profile, settings)
 - **Providers**: State management in `lib/providers/` (one provider per domain: auth, theme, onboarding, settings)
 - **Widgets**: Reusable components under `lib/widgets/` organized by screen name (auth, home, profile, start, settings)
@@ -375,7 +375,7 @@ Database schema (Postgres) for users, profiles, blocking_rules, app_usage, block
 - **Android Support**: Device Admin integration not yet implemented (framework in place; native iOS priority)
 - **Offline-First**: App currently online-only; local SQLite caching planned but not wired
 - **Testing**: Minimal test coverage; expand unit/widget/integration tests before release
-- **Database Setup**: New tables (blocking_rules, app_usage, blocked_attempts, profiles) must be created in Supabase. See `docs/schema.md` for SQL setup instructions and schema details.
+- **Database Setup**: New tables (blocking_rules, app_usage, blocked_attempts, profiles) must be created in Supabase. See `documentation/DATABASE_SCHEMA.md` for SQL setup instructions and schema details.
 
 ## Critical: Agent Instructions & Documentation Synchronization
 
@@ -402,34 +402,32 @@ Database schema (Postgres) for users, profiles, blocking_rules, app_usage, block
 
 **Documentation Structure** (do NOT split or duplicate):
 ```
-docs/
-├── index.md                    ← Entry point
-├── GETTING_STARTED.md          ← Setup instructions
-├── DEVELOPMENT.md              ← Common workflows
+documentation/
+├── GETTING_STARTED.md          ← Navigation hub for all docs
+├── SETUP.md                    ← Environment setup guide
 ├── ARCHITECTURE.md             ← Project structure
-├── guides/                     ← How-to guides
-│   ├── ROUTING.md              ⚠️ CRITICAL
-│   ├── COMPONENTS.md
-│   ├── STATE_MANAGEMENT.md
-│   ├── LOGGING.md
-│   └── NAVIGATION.md
-└── reference/                  ← Technical reference
-    ├── DATABASE_SCHEMA.md
-    ├── AUTH_IMPLEMENTATION.md
-    └── FORUI_MIGRATION.md
+├── ROUTING.md                  ← Navigation patterns (⚠️ CRITICAL)
+├── DEVELOPMENT.md              ← Common workflows
+├── STATE_MANAGEMENT.md         ← Provider pattern
+├── COMPONENTS.md               ← Forui UI system
+├── AUTH_IMPLEMENTATION.md      ← Authentication flows
+├── DATABASE_SCHEMA.md          ← Database tables
+├── FORUI_MIGRATION.md          ← Theme system
+├── LOGGING.md                  ← Logging
+└── NAVIGATION.md               ← Advanced routing
 ```
 
 **Critical Rules:**
 1. **Single Source of Truth**: Each topic documented in ONE place only
-   - ❌ DO NOT duplicate docs in root and docs/ (causes sync issues)
-   - ✅ All documentation lives in `docs/` hierarchy
-   - ✅ Root only has: `.github/instructions/`, `README.md`, `pubspec.yaml`, source code
+   - ❌ DO NOT duplicate docs (all docs in `documentation/` folder)
+   - ✅ All documentation lives in `documentation/` at same level (no subfolders)
+   - ✅ README.md is only root-level documentation
 
 2. **With Every Code Change, Update Docs**:
-   - Change navigation patterns → Update `docs/guides/ROUTING.md`
-   - Add new component → Update `docs/guides/COMPONENTS.md`
-   - Change state management → Update `docs/guides/STATE_MANAGEMENT.md`
-   - Add new workflow → Update `docs/DEVELOPMENT.md`
+   - Change navigation patterns → Update `documentation/ROUTING.md`
+   - Add new component → Update `documentation/COMPONENTS.md`
+   - Change state management → Update `documentation/STATE_MANAGEMENT.md`
+   - Add new workflow → Update `documentation/DEVELOPMENT.md`
 
 3. **With Every Doc Change, Verify Code**:
    - Document new pattern → Ensure all code follows it
@@ -443,9 +441,8 @@ docs/
    - **Why**: Agents need this file attached in every prompt
 
 5. **Documentation Cross-References**:
-   - All guides link to related topics
-   - All references link to implementation examples
-   - `docs/index.md` is the navigation hub
+   - All files link to related documentation
+   - `documentation/GETTING_STARTED.md` is the navigation hub
    - No broken links or orphaned docs
 
 ### Workflow: Code Change → Documentation Update
@@ -453,16 +450,16 @@ docs/
 When making code changes:
 
 1. **Make the code change** (new screen, new provider, bug fix, etc.)
-2. **Update relevant guide**:
-   - Navigation change? → `docs/guides/ROUTING.md`
-   - New Provider? → `docs/guides/STATE_MANAGEMENT.md`
-   - New component? → `docs/guides/COMPONENTS.md`
-   - New workflow? → `docs/DEVELOPMENT.md`
+2. **Update relevant documentation**:
+   - Navigation change? → `documentation/ROUTING.md`
+   - New Provider? → `documentation/STATE_MANAGEMENT.md`
+   - New component? → `documentation/COMPONENTS.md`
+   - New workflow? → `documentation/DEVELOPMENT.md`
 3. **Update Agent Instructions** if pattern is new/changed
 4. **Run validation**:
    - `flutter analyze` (zero warnings)
    - Verify cross-references in docs
-   - Ensure no root-level duplicate docs
+   - Ensure no broken links
 5. **Commit** code AND documentation together
 
 ### Workflow: Documentation Change → Code Verification
@@ -491,12 +488,12 @@ When updating documentation:
 
 Before committing any code or documentation changes:
 
-- [ ] All code follows patterns documented in `docs/guides/*`
+- [ ] All code follows patterns documented in `documentation/*`
 - [ ] All new patterns are added to Agent Instructions
 - [ ] `flutter analyze` shows zero warnings
-- [ ] Documentation is NOT duplicated (only one copy in `docs/`)
+- [ ] Documentation is NOT duplicated (only one copy in `documentation/`)
 - [ ] All doc cross-references are valid (no broken links)
-- [ ] If code changed, relevant guides were updated
+- [ ] If code changed, relevant documentation was updated
 - [ ] If docs changed, code was verified to match
-- [ ] `docs/index.md` reflects all guide updates
+- [ ] `documentation/GETTING_STARTED.md` reflects all guide updates
 - [ ] Agent Instructions are current and attached to next prompt
