@@ -1,7 +1,0 @@
-{
-    "chat.tools.terminal.autoApprove": {
-        "timeout": true,
-        "dart": true,
-        "pkill": true
-    }
-}
