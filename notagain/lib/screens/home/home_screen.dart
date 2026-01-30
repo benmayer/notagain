@@ -4,9 +4,21 @@
 
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
+import '../../core/logging/app_logger.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    AppLogger.info('HomeScreen initialized', tag: 'Navigation');
+  }
 
   @override
   Widget build(BuildContext context) {

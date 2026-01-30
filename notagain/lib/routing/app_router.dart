@@ -26,8 +26,6 @@ class AppRouter {
       final user = authProvider.user;
       final onboardingCompleted = user?.onboardingCompleted ?? false;
 
-      debugPrint('🔄 [REDIRECT] location=${state.matchedLocation}, auth=$isAuthenticated, onboardingComplete=$onboardingCompleted');
-
       // Not authenticated - allow access to auth screens
       if (!isAuthenticated) {
         if (state.matchedLocation == '/' || 
@@ -43,11 +41,9 @@ class AppRouter {
         // Allow access to onboarding screens
         if (state.matchedLocation == '/onboarding' || 
             state.matchedLocation == '/onboarding/step2') {
-          debugPrint('   → Allow /onboarding (user incomplete)');
           return null;
         }
         // Redirect all other routes to onboarding
-        debugPrint('   → Redirect to /onboarding (user incomplete)');
         return '/onboarding';
       }
 
@@ -56,18 +52,14 @@ class AppRouter {
         if (state.matchedLocation == '/' || 
             state.matchedLocation == '/login' || 
             state.matchedLocation == '/signup') {
-          debugPrint('   → Redirect from auth screen to /home (onboarded)');
           return '/home';
         }
         // Don't allow access to onboarding screens if already completed
         if (state.matchedLocation == '/onboarding' || 
             state.matchedLocation == '/onboarding/step2') {
-          debugPrint('   → Redirect from onboarding to /home (already complete)');
           return '/home';
         }
       }
-
-      debugPrint('   → Allow (no redirect needed)');
 
       return null; // Allow access
     },
@@ -230,29 +222,5 @@ class AppRouter {
 }
 
 /// Navigation logger for debugging route transitions
-class _NavigationLogger extends NavigatorObserver {
-  @override
-  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    final routeName = route.settings.name ?? 'unknown';
-    final routeType = route.runtimeType.toString();
-    final isCupertinoRoute = routeType.contains('Cupertino');
-    
-    debugPrint('🔵 [NAV] Pushed: $routeName (from: ${previousRoute?.settings.name ?? 'none'})');
-    debugPrint('   Route type: $routeType');
-    debugPrint('   Has cupertino transitions: $isCupertinoRoute');
-    
-    if (route is CupertinoPageRoute) {
-      debugPrint('   ✅ CupertinoPageRoute - swipe gesture enabled');
-    } else if (isCupertinoRoute) {
-      debugPrint('   ✅ Cupertino-based route - swipe gesture should work');
-    } else {
-      debugPrint('   ⚠️ NOT a Cupertino route - swipe gesture may NOT work');
-    }
-  }
+class _NavigationLogger extends NavigatorObserver {}
 
-  @override
-  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    final routeName = route.settings.name ?? 'unknown';
-    debugPrint('🔴 [NAV] Popped: $routeName (back to: ${previousRoute?.settings.name ?? 'none'})');
-  }
-}

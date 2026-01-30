@@ -26,6 +26,7 @@ class _OnboardingStep2ScreenState extends State<OnboardingStep2Screen> {
   @override
   void initState() {
     super.initState();
+    AppLogger.info('OnboardingStep2Screen initialized', tag: 'Navigation');
     // No need to manipulate step here - Step 1 already advanced to step 2
     // Just initialize if needed
     WidgetsBinding.instance.addPostFrameCallback((_) async {

@@ -161,15 +161,8 @@ class AuthProvider extends ChangeNotifier {
         }
         
         AppLogger.info('Login successful for $email', tag: 'AuthProvider');
-        debugPrint('🔍 [AUTH] Login success - Building result object');
-        debugPrint('   User: $_user');
-        debugPrint('   User.onboardingCompleted: ${_user?.onboardingCompleted}');
         notifyListeners();
-        final successResult = Result.success(_user!);
-        debugPrint('🔍 [AUTH] Result.isSuccess: ${successResult.isSuccess}');
-        debugPrint('   Result.data: ${successResult.data}');
-        debugPrint('   Result.data?.onboardingCompleted: ${successResult.data?.onboardingCompleted}');
-        return successResult;
+        return Result.success(_user!);
       } else {
         _error = result.error?.message ?? 'Login failed';
         AppLogger.warning('Login failed: $_error', tag: 'AuthProvider');

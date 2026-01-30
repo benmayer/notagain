@@ -35,7 +35,7 @@ class AppLogger {
   static void init({LogLevel minLevel = LogLevel.debug}) {
     _minLevel = minLevel;
     _logger = Logger(
-      printer: SimplePrinter(colors: true),
+      printer: SimplePrinter(colors: false),
       level: _logLevelToLoggerLevel(minLevel),
     );
   }

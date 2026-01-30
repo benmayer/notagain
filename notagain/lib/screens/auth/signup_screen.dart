@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/logging/app_logger.dart';
 import '../../providers/auth_provider.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -39,6 +40,7 @@ class _SignupScreenState extends State<SignupScreen> {
       ..loadRequest(
         Uri.parse('https://example.com/privacy'), // Replace with actual URL
       );
+    AppLogger.info('SignupScreen initialized', tag: 'Navigation');
   }
 
   @override
@@ -172,13 +174,8 @@ class _SignupScreenState extends State<SignupScreen> {
 
     if (!mounted) return;
 
-    debugPrint('🔍 [SIGNUP] Email signup result - isSuccess: ${result.isSuccess}');
-    debugPrint('   result.data: ${result.data}');
-    debugPrint('   result.error: ${result.error}');
-
     if (result.isSuccess) {
       // New signups always go to onboarding (onboardingCompleted is false)
-      debugPrint('🔄 [SIGNUP] Pushing to /onboarding (new account)');
       context.push('/onboarding');
     } else {
       // Show Forui toast notification
@@ -201,20 +198,14 @@ class _SignupScreenState extends State<SignupScreen> {
 
     if (!mounted) return;
 
-    debugPrint('🔍 [SIGNUP] Apple signin result - isSuccess: ${result.isSuccess}');
-    debugPrint('   result.data: ${result.data}');
-
     if (result.isSuccess) {
       // Check if onboarding is complete and navigate accordingly
       final user = result.data;
       final onboardingCompleted = user?.onboardingCompleted ?? false;
-      debugPrint('🔍 [SIGNUP] User: ${user?.email}, onboardingCompleted=$onboardingCompleted');
       
       if (onboardingCompleted) {
-        debugPrint('🔄 [SIGNUP] Navigating to /home (onboarding complete)');
         context.go('/home');
       } else {
-        debugPrint('🔄 [SIGNUP] Pushing to /onboarding (onboarding incomplete)');
         context.push('/onboarding');
       }
     } else {
@@ -237,20 +228,14 @@ class _SignupScreenState extends State<SignupScreen> {
 
     if (!mounted) return;
 
-    debugPrint('🔍 [SIGNUP] Google signin result - isSuccess: ${result.isSuccess}');
-    debugPrint('   result.data: ${result.data}');
-
     if (result.isSuccess) {
       // Check if onboarding is complete and navigate accordingly
       final user = result.data;
       final onboardingCompleted = user?.onboardingCompleted ?? false;
-      debugPrint('🔍 [SIGNUP] User: ${user?.email}, onboardingCompleted=$onboardingCompleted');
       
       if (onboardingCompleted) {
-        debugPrint('🔄 [SIGNUP] Navigating to /home (onboarding complete)');
         context.go('/home');
       } else {
-        debugPrint('🔄 [SIGNUP] Pushing to /onboarding (onboarding incomplete)');
         context.push('/onboarding');
       }
     } else {
@@ -483,7 +468,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => context.go('/login'),
+                    onTap: () => context.push('/login'),
                     child: Text(
                       'Sign In',
                       style: context.theme.typography.sm.copyWith(

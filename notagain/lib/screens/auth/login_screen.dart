@@ -9,6 +9,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/logging/app_logger.dart';
 import '../../providers/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -24,6 +25,12 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
 
   @override
+  void initState() {
+    super.initState();
+    AppLogger.info('LoginScreen initialized', tag: 'Navigation');
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -33,13 +40,10 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleLogin(AuthProvider authProvider) async {
     if (!_formKey.currentState!.validate()) return;
 
-    debugPrint('🔍 [LOGIN] Starting email login...');
     final result = await authProvider.login(
       email: _emailController.text.trim(),
       password: _passwordController.text,
     );
-
-    debugPrint('🔍 [LOGIN] Got result - isSuccess: ${result.isSuccess}');
 
     if (!mounted) return;
 
@@ -47,7 +51,6 @@ class _LoginScreenState extends State<LoginScreen> {
       // Check if onboarding is complete and navigate accordingly
       final user = result.data;
       final onboardingCompleted = user?.onboardingCompleted ?? false;
-      debugPrint('🔍 [LOGIN] User: ${user?.email}, onboardingCompleted=$onboardingCompleted');
       
       if (onboardingCompleted) {
         debugPrint('🔄 [LOGIN] Navigating to /home (onboarding complete)');
@@ -77,20 +80,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (!mounted) return;
 
-    debugPrint('🔍 [LOGIN] Apple signin result - isSuccess: ${result.isSuccess}');
-    debugPrint('   result.data: ${result.data}');
-
     if (result.isSuccess) {
       // Check if onboarding is complete and navigate accordingly
       final user = result.data;
       final onboardingCompleted = user?.onboardingCompleted ?? false;
-      debugPrint('🔍 [LOGIN] User: ${user?.email}, onboardingCompleted=$onboardingCompleted');
       
       if (onboardingCompleted) {
-        debugPrint('🔄 [LOGIN] Navigating to /home (onboarding complete)');
         context.go('/home');
       } else {
-        debugPrint('🔄 [LOGIN] Pushing to /onboarding (onboarding incomplete)');
         context.push('/onboarding');
       }
     } else {
@@ -113,20 +110,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (!mounted) return;
 
-    debugPrint('🔍 [LOGIN] Google signin result - isSuccess: ${result.isSuccess}');
-    debugPrint('   result.data: ${result.data}');
-
     if (result.isSuccess) {
       // Check if onboarding is complete and navigate accordingly
       final user = result.data;
       final onboardingCompleted = user?.onboardingCompleted ?? false;
-      debugPrint('🔍 [LOGIN] User: ${user?.email}, onboardingCompleted=$onboardingCompleted');
       
       if (onboardingCompleted) {
-        debugPrint('🔄 [LOGIN] Navigating to /home (onboarding complete)');
         context.go('/home');
       } else {
-        debugPrint('🔄 [LOGIN] Pushing to /onboarding (onboarding incomplete)');
         context.push('/onboarding');
       }
     } else {
@@ -277,7 +268,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => context.go('/signup'),
+                    onTap: () => context.push('/signup'),
                     child: Text(
                       'Sign Up',
                       style: context.theme.typography.sm.copyWith(
