@@ -375,7 +375,7 @@ Database schema (Postgres) for users, profiles, blocking_rules, app_usage, block
 - **Android Support**: Device Admin integration not yet implemented (framework in place; native iOS priority)
 - **Offline-First**: App currently online-only; local SQLite caching planned but not wired
 - **Testing**: Minimal test coverage; expand unit/widget/integration tests before release
-- **Database Setup**: New tables (blocking_rules, app_usage, blocked_attempts, profiles) must be created in Supabase. See `documentation/DATABASE_SCHEMA.md` for SQL setup instructions and schema details.
+- **Database Setup**: New tables (blocking_rules, app_usage, blocked_attempts, profiles) must be created in Supabase. See `documentation/database_schema.md` for SQL setup instructions and schema details.
 
 ## Critical: Agent Instructions & Documentation Synchronization
 
@@ -403,18 +403,16 @@ Database schema (Postgres) for users, profiles, blocking_rules, app_usage, block
 **Documentation Structure** (do NOT split or duplicate):
 ```
 documentation/
-├── GETTING_STARTED.md          ← Navigation hub for all docs
-├── SETUP.md                    ← Environment setup guide
-├── ARCHITECTURE.md             ← Project structure
-├── ROUTING.md                  ← Navigation patterns (⚠️ CRITICAL)
-├── DEVELOPMENT.md              ← Common workflows
-├── STATE_MANAGEMENT.md         ← Provider pattern
-├── COMPONENTS.md               ← Forui UI system
-├── AUTH_IMPLEMENTATION.md      ← Authentication flows
-├── DATABASE_SCHEMA.md          ← Database tables
-├── FORUI_MIGRATION.md          ← Theme system
-├── LOGGING.md                  ← Logging
-└── NAVIGATION.md               ← Advanced routing
+├── GETTING_STARTED_GUIDE.md    ← Navigation hub for all docs
+├── SETUP_GUIDE.md              ← Environment setup guide
+├── DEVELOPMENT_GUIDE.md        ← Common workflows
+├── architecture.md             ← Project structure
+├── routing.md                  ← Navigation patterns (⚠️ CRITICAL)
+├── state_management.md         ← Provider pattern
+├── components.md               ← Forui UI system & theme
+├── authentication.md           ← Authentication flows
+├── database_schema.md          ← Database tables
+└── logging.md                  ← Logging
 ```
 
 **Critical Rules:**
@@ -424,10 +422,10 @@ documentation/
    - ✅ README.md is only root-level documentation
 
 2. **With Every Code Change, Update Docs**:
-   - Change navigation patterns → Update `documentation/ROUTING.md`
-   - Add new component → Update `documentation/COMPONENTS.md`
-   - Change state management → Update `documentation/STATE_MANAGEMENT.md`
-   - Add new workflow → Update `documentation/DEVELOPMENT.md`
+   - Change navigation patterns → Update `documentation/routing.md`
+   - Add new component → Update `documentation/components.md`
+   - Change state management → Update `documentation/state_management.md`
+   - Add new workflow → Update `documentation/DEVELOPMENT_GUIDE.md`
 
 3. **With Every Doc Change, Verify Code**:
    - Document new pattern → Ensure all code follows it
@@ -442,7 +440,7 @@ documentation/
 
 5. **Documentation Cross-References**:
    - All files link to related documentation
-   - `documentation/GETTING_STARTED.md` is the navigation hub
+   - `documentation/GETTING_STARTED_GUIDE.md` is the navigation hub
    - No broken links or orphaned docs
 
 ### Workflow: Code Change → Documentation Update
@@ -451,10 +449,10 @@ When making code changes:
 
 1. **Make the code change** (new screen, new provider, bug fix, etc.)
 2. **Update relevant documentation**:
-   - Navigation change? → `documentation/ROUTING.md`
-   - New Provider? → `documentation/STATE_MANAGEMENT.md`
-   - New component? → `documentation/COMPONENTS.md`
-   - New workflow? → `documentation/DEVELOPMENT.md`
+   - Navigation change? → `documentation/routing.md`
+   - New Provider? → `documentation/state_management.md`
+   - New component? → `documentation/components.md`
+   - New workflow? → `documentation/DEVELOPMENT_GUIDE.md`
 3. **Update Agent Instructions** if pattern is new/changed
 4. **Run validation**:
    - `flutter analyze` (zero warnings)
@@ -495,5 +493,5 @@ Before committing any code or documentation changes:
 - [ ] All doc cross-references are valid (no broken links)
 - [ ] If code changed, relevant documentation was updated
 - [ ] If docs changed, code was verified to match
-- [ ] `documentation/GETTING_STARTED.md` reflects all guide updates
+- [ ] `documentation/GETTING_STARTED_GUIDE.md` reflects all guide updates
 - [ ] Agent Instructions are current and attached to next prompt
