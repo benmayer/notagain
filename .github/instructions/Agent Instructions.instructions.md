@@ -376,3 +376,127 @@ Database schema (Postgres) for users, profiles, blocking_rules, app_usage, block
 - **Offline-First**: App currently online-only; local SQLite caching planned but not wired
 - **Testing**: Minimal test coverage; expand unit/widget/integration tests before release
 - **Database Setup**: New tables (blocking_rules, app_usage, blocked_attempts, profiles) must be created in Supabase. See `docs/schema.md` for SQL setup instructions and schema details.
+
+## Critical: Agent Instructions & Documentation Synchronization
+
+### ⚠️ Agent Instructions Must Be Attached to Every Prompt
+
+**For Human Users:**
+- **Always attach** `.github/instructions/Agent Instructions.instructions.md` when submitting tasks
+- Include this file in the prompt so agents have the latest patterns and conventions
+- This ensures consistency across all work (code style, patterns, architecture decisions)
+
+**For AI Agents:**
+- **Always check** the attached Agent Instructions file FIRST before proceeding with any task
+- These instructions override any conflicting guidance in conversation history
+- Use these instructions as the authoritative reference for:
+  - Code patterns and conventions
+  - Navigation rules and routing
+  - State management practices
+  - UI component guidelines (Forui-only rule)
+  - Project structure and file organization
+
+### 📚 Documentation Must Stay Synchronized With Code
+
+**Core Principle**: Code and documentation are synchronized. When code changes, documentation changes. When documentation changes, code must reflect it.
+
+**Documentation Structure** (do NOT split or duplicate):
+```
+docs/
+├── index.md                    ← Entry point
+├── GETTING_STARTED.md          ← Setup instructions
+├── DEVELOPMENT.md              ← Common workflows
+├── ARCHITECTURE.md             ← Project structure
+├── guides/                     ← How-to guides
+│   ├── ROUTING.md              ⚠️ CRITICAL
+│   ├── COMPONENTS.md
+│   ├── STATE_MANAGEMENT.md
+│   ├── LOGGING.md
+│   └── NAVIGATION.md
+└── reference/                  ← Technical reference
+    ├── DATABASE_SCHEMA.md
+    ├── AUTH_IMPLEMENTATION.md
+    └── FORUI_MIGRATION.md
+```
+
+**Critical Rules:**
+1. **Single Source of Truth**: Each topic documented in ONE place only
+   - ❌ DO NOT duplicate docs in root and docs/ (causes sync issues)
+   - ✅ All documentation lives in `docs/` hierarchy
+   - ✅ Root only has: `.github/instructions/`, `README.md`, `pubspec.yaml`, source code
+
+2. **With Every Code Change, Update Docs**:
+   - Change navigation patterns → Update `docs/guides/ROUTING.md`
+   - Add new component → Update `docs/guides/COMPONENTS.md`
+   - Change state management → Update `docs/guides/STATE_MANAGEMENT.md`
+   - Add new workflow → Update `docs/DEVELOPMENT.md`
+
+3. **With Every Doc Change, Verify Code**:
+   - Document new pattern → Ensure all code follows it
+   - Document guideline → Run `flutter analyze` to enforce it
+   - Document workflow → Test the workflow end-to-end
+
+4. **Keep Agent Instructions Updated**:
+   - Document new code patterns → Add to Agent Instructions
+   - Finalize architectural decision → Add to Agent Instructions
+   - Establish new convention → Add to Agent Instructions
+   - **Why**: Agents need this file attached in every prompt
+
+5. **Documentation Cross-References**:
+   - All guides link to related topics
+   - All references link to implementation examples
+   - `docs/index.md` is the navigation hub
+   - No broken links or orphaned docs
+
+### Workflow: Code Change → Documentation Update
+
+When making code changes:
+
+1. **Make the code change** (new screen, new provider, bug fix, etc.)
+2. **Update relevant guide**:
+   - Navigation change? → `docs/guides/ROUTING.md`
+   - New Provider? → `docs/guides/STATE_MANAGEMENT.md`
+   - New component? → `docs/guides/COMPONENTS.md`
+   - New workflow? → `docs/DEVELOPMENT.md`
+3. **Update Agent Instructions** if pattern is new/changed
+4. **Run validation**:
+   - `flutter analyze` (zero warnings)
+   - Verify cross-references in docs
+   - Ensure no root-level duplicate docs
+5. **Commit** code AND documentation together
+
+### Workflow: Documentation Change → Code Verification
+
+When updating documentation:
+
+1. **Update the doc** (clarify pattern, add example, etc.)
+2. **Audit codebase** to ensure code matches doc:
+   - Search for usages of the pattern
+   - Fix any code that doesn't follow the documented pattern
+   - Run `flutter analyze` to catch issues
+3. **Update Agent Instructions** if guidance changed
+4. **Test** the documented pattern end-to-end
+5. **Commit** documentation AND code fixes together
+
+### Documentation Quality Standards
+
+- ✅ **Clear**: Jargon-free, beginner-friendly explanations
+- ✅ **Comprehensive**: Covers happy path, edge cases, and common mistakes
+- ✅ **Current**: Matches actual code implementation
+- ✅ **Accessible**: Code examples, diagrams, quick reference sections
+- ✅ **Indexed**: Cross-linked via `docs/index.md` and guides
+- ✅ **AI-Friendly**: Explicit reading order, clear sections, no ambiguity
+
+### Verification Checklist (Use Before Committing)
+
+Before committing any code or documentation changes:
+
+- [ ] All code follows patterns documented in `docs/guides/*`
+- [ ] All new patterns are added to Agent Instructions
+- [ ] `flutter analyze` shows zero warnings
+- [ ] Documentation is NOT duplicated (only one copy in `docs/`)
+- [ ] All doc cross-references are valid (no broken links)
+- [ ] If code changed, relevant guides were updated
+- [ ] If docs changed, code was verified to match
+- [ ] `docs/index.md` reflects all guide updates
+- [ ] Agent Instructions are current and attached to next prompt
